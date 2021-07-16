@@ -1,0 +1,51 @@
+export const MarkerList = [
+  {
+    no: 1,
+    lat: -7.7821,
+    lng: 110.4012,
+    status: "T",
+    gas: 5.0,
+  },
+  {
+    no: 1,
+    lat: -7.7821,
+    lng: 110.4010,
+    status: "T",
+    gas: 5.0,
+  },
+  {
+    no: 1,
+    lat: -7.7824,
+    lng: 110.4014,
+    status: "P",
+    gas: 5.0,
+  },
+  {
+    no: 2,
+    lat: -7.7840,
+    lng: 110.40155,
+    status: "T",
+    gas: 5.0,
+  },
+  {
+    no: 2,
+    lat: -7.7842,
+    lng: 110.4012,
+    status: "T",
+    gas: 5.0,
+  },
+  {
+    no: 2,
+    lat: -7.7844,
+    lng: 110.4009,
+    status: "T",
+    gas: 5.0,
+  },
+  {
+    no: 2,
+    lat: -7.78455,
+    lng: 110.4016,
+    status: "P",
+    gas: 5.0,
+  },
+];
