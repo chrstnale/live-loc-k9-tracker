@@ -11,6 +11,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.17.1"
+    "express": "^4.17.1",
+    "react-edit-text": "^4.1.0",
+    "serialport": "^9.2.0",
+    "socket.io": "^4.1.3"
   }
 }

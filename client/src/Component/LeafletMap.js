@@ -1,10 +1,13 @@
-import { Map, Marker, Popup, TileLayer, ZoomControl } from 'react-leaflet';
+import { Map, Marker, Popup, TileLayer, ZoomControl,Polyline} from 'react-leaflet';
 import React, { useState, useEffect } from "react";
-import L from "leaflet";
+import { renderToStaticMarkup } from "react-dom/server";
+import L, {divIcon} from "leaflet";
 import styled from 'styled-components';
 import MarkerClusterGroup from "react-leaflet-markercluster";
 import localforage from 'localforage';
 import 'leaflet-offline';
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faDog, faMap, faMapMarked, faMapMarker, faMapMarkerAlt, faMarker, faPaw, faSearch } from "@fortawesome/free-solid-svg-icons";
 import { GeoSearchControl, OpenStreetMapProvider } from 'leaflet-geosearch';
 
 
@@ -13,18 +16,18 @@ import DogEmoticon from "../assets/dog.webp";
 import { MarkerList } from "./MarkerList";
 
 //Custom marker Icons
-const trackMarker = new L.icon({
-    iconUrl: require('../assets/track.webp').default,
-    iconSize: new L.Point(15, 15)
-});
-const dogMarker = new L.icon({
-    iconUrl: require('../assets/dog.webp').default,
-    iconSize: new L.Point(30, 30)
-});
-const pinMarker = new L.icon({
-    iconUrl: require('../assets/pin.webp').default,
-    iconSize: new L.Point(25, 41)
-});
+// const trackMarker = new L.icon({
+//     iconUrl: require('../assets/track.webp').default,
+//     iconSize: new L.Point(15, 15)
+// });
+// const dogMarker = new L.icon({
+//     iconUrl: require('../assets/dog.webp').default,
+//     iconSize: new L.Point(30, 30)
+// });
+// const pinMarker = new L.icon({
+//     iconUrl: require('../assets/pin.webp').default,
+//     iconSize: new L.Point(25, 41),
+// });
 
 // const searchControl = new GeoSearchControl({ //geosearch object
 //     provider: new OpenStreetMapProvider(),
@@ -38,7 +41,23 @@ const pinMarker = new L.icon({
 //     keepResult: false,
 //     searchLabel: 'Cari...'
 // });
-
+// function LocationMarker() {
+//     const [position, setPosition] = useState(null)
+//     const map = useMapEvents({
+//       click() {
+//         map.locate()
+//       },
+//       locationfound(e) {
+//         setPosition(e.latlng)
+//         map.flyTo(e.latlng, map.getZoom())
+//       },
+//     })
+//     return position === null ? null : (
+//       <Marker position={position}>
+//         <Popup>You are here</Popup>
+//       </Marker>
+//     )
+//   }
 
 export default function LeafletMap() {
     // Map initial position
@@ -47,21 +66,53 @@ export default function LeafletMap() {
         lat: -7.7956,
         lng: 110.3695,
         zoom: 13,
-        maxZoom: 19,
+        maxZoom: 25,
     });
+
+    var latlngs = [
+        [-7.689503, 110.420798],
+        [-7.689506, 110.420801],
+        [-7.689511, 110.420810],
+        [-7.689513, 110.420814],
+
+    ];
 
     useEffect(() => {
         const maps = L.map('map-id');
         const offlineLayer = L.tileLayer.offline('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', localforage, {
             attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
             subdomains: 'abc',
-            minZoom: mapStart.zoom,
-            maxZoom: mapStart.maxZoom,
+            minZoom: 15,
+            maxZoom: 30,
             crossOrigin: true
         });
         offlineLayer.addTo(maps);
-        maps.zoomControl.remove();
+        // var polyline = L.polyline(latlngs, {color: 'red'}).addTo(maps);
+        // var OSMRoads = L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        //     maxZoom: mapStart.maxZoom,
+        //     maxNativeZoom: 16, 
+        // });
+        // OSMRoads.addTo(maps);
     }, []);
+
+    const dogMarker = divIcon({
+      html: renderToStaticMarkup(<FontAwesomeIcon 
+        icon={faDog}
+      style={{fontSize: 'calc(0.5rem + 2vmin)'}}/>),
+    });
+    const trackMarker = divIcon({
+        html: renderToStaticMarkup(<FontAwesomeIcon 
+        icon={faPaw} 
+        style={{fontSize: 'calc(0.5rem + 0.2vmin)'}}/>),
+      });
+    const pinMarker = divIcon({
+    html: renderToStaticMarkup(<FontAwesomeIcon 
+        icon={faMapMarkerAlt} 
+        style={{fontSize: 'calc(0.5rem + 5vmin)',
+                color: 'red',
+            zIndex: 2000}}/>),
+    });
+
 
     return (
         <Container>
@@ -73,7 +124,10 @@ export default function LeafletMap() {
                 <p>Inovasi Rompi Anjing Pelacak Guna Meningkatkan Efisiensi Proses Evakuasi Korban Bencana Alam</p>
                 <div className='dog-list'>
                     <div className='dog'>
-                        <img src={DogEmoticon}></img>
+                        <FontAwesomeIcon icon={faDog} style={{fontSize: 'calc(0.5rem + 5vmin)'}} onClick={() => setMapStart({
+                            lat: MarkerList[(MarkerList.length-1)].lat,
+                            lng: MarkerList[(MarkerList.length-1)].lng,
+                        })}/>
                         <p>
                             <strong>Anjing no: 1</strong>, data ke-1
                             <div>
@@ -92,34 +146,44 @@ export default function LeafletMap() {
                         attribution="&copy; <a href=&quot;https://osm.org/copyright&quot;>OpenStreetMap</a> contributors"
                         url="https://{s}.tile.osm.org/{z}/{x}/{y}.png"
                     />
-                    <MarkerClusterGroup>
-                        {MarkerList.map((marker, index) => {
-                            let post = [marker.lat, marker.lng];
-                            return (
-                                <Marker key={index} position={post} icon={((marker.status == 'P') ? pinMarker : ((index == (MarkerList.size - 1)) ? dogMarker : trackMarker))}>
-                                    <Popup
-                                        tipSize={5}
-                                        anchor="bottom-right"
-                                        longitude={marker.lng}
-                                        latitude={marker.lat}
-                                    >
-                                        <p>
-                                            <strong>Anjing no: {marker.no} </strong>
+                    {/* <MarkerClusterGroup> */}
+                    {MarkerList.map((marker, index) => {
+                        let post = [marker.lat, marker.lng];
+                        return (
+                            <Marker key={index} position={post} icon={((marker.Status == 'P') ? pinMarker : ((index == (MarkerList.length - 1)) ? dogMarker : trackMarker))}>
+                                <Popup
+                                    tipSize={5}
+                                    anchor="bottom-right"
+                                    longitude={marker.lng}
+                                    latitude={marker.lat}
+                                >
+                                    <p>
+                                        <strong>Anjing no: {marker.no} </strong>
                                         , data ke-{index}
-                                            <br />
+                                        <br />
                                         Status Pencarian: {((marker.status == "T") ? 'Track' : 'Pin')}
-                                            <br />
-                                        Status Gas: {marker.gas}
-                                            <br />
+                                        <br />
+                                        {/* Status Gas: {marker.gas}
+                                            <br /> */}
                                         Latitude: {marker.lat}
-                                            <br />
+                                        <br />
                                         Longitude: {marker.lng}
-                                        </p>
-                                    </Popup>
-                                </Marker>
-                            );
-                        })}
-                    </MarkerClusterGroup>
+                                    </p>
+                                </Popup>
+                            </Marker>
+                        );
+
+
+                    })}
+
+                    {/* </MarkerClusterGroup> */}
+                    {/* {MarkerList.map((marker, index) => {
+                        let post = [marker.lat, marker.lng];
+                        return ( */}
+                    {/* );
+                })} */}
+                    <Polyline color="purple" positions={latlngs} />
+
                 </Map>
             </div >
         </Container >
@@ -135,6 +199,10 @@ const Container = styled.div`
     overflow: hidden;
     margin: 0;
     padding: 0;
+    .leaflet-div-icon {
+        background: transparent;
+        border: none;
+    }  
     h1{
         font-size: calc(0.5rem + 3vmin);
     }
