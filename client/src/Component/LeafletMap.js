@@ -7,7 +7,7 @@ import MarkerClusterGroup from "react-leaflet-markercluster";
 import localforage from 'localforage';
 import 'leaflet-offline';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faDog, faMap, faMapMarked, faMapMarker, faMapMarkerAlt, faMarker, faPaw, faSearch } from "@fortawesome/free-solid-svg-icons";
+import { faCloud, faDog, faMap, faMapMarked, faMapMarker, faMapMarkerAlt, faMarker, faPaw, faSearch } from "@fortawesome/free-solid-svg-icons";
 import { GeoSearchControl, OpenStreetMapProvider } from 'leaflet-geosearch';
 
 
@@ -68,49 +68,54 @@ export default function LeafletMap() {
         zoom: 13,
         maxZoom: 25,
     });
-
-    var latlngs = [
-        [-7.689503, 110.420798],
-        [-7.689506, 110.420801],
-        [-7.689511, 110.420810],
-        [-7.689513, 110.420814],
-
-    ];
+    var latlngs = [];
+    for (let i = 0; i < MarkerList.length; i++) {
+        latlngs.push(
+          [MarkerList[i].lat, MarkerList[i].lng]
+        );
+    }
 
     useEffect(() => {
-        const maps = L.map('map-id');
-        const offlineLayer = L.tileLayer.offline('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', localforage, {
-            attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-            subdomains: 'abc',
-            minZoom: 15,
-            maxZoom: 30,
-            crossOrigin: true
-        });
-        offlineLayer.addTo(maps);
-        // var polyline = L.polyline(latlngs, {color: 'red'}).addTo(maps);
-        // var OSMRoads = L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        //     maxZoom: mapStart.maxZoom,
-        //     maxNativeZoom: 16, 
-        // });
-        // OSMRoads.addTo(maps);
+        let maps = L.DomUtil.get('map-id');
+        if(maps == null){
+            maps = L.map('map-id');
+            const offlineLayer = L.tileLayer.offline('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', localforage, {
+                attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+                subdomains: 'abc',
+                minZoom: 15,
+                maxZoom: 30,
+                crossOrigin: true
+            });
+            offlineLayer.addTo(maps);
+        }
     }, []);
 
     const dogMarker = divIcon({
       html: renderToStaticMarkup(<FontAwesomeIcon 
-        icon={faDog}
+        icon={faPaw}
       style={{fontSize: 'calc(0.5rem + 2vmin)'}}/>),
     });
     const trackMarker = divIcon({
+        // html: renderToStaticMarkup(<FontAwesomeIcon 
+        //   icon={faDog}
+        // style={{fontSize: 'calc(0.5rem + 2vmin)'}}/>),
+      });
+    const cautionGasMarker = divIcon({
         html: renderToStaticMarkup(<FontAwesomeIcon 
-        icon={faPaw} 
-        style={{fontSize: 'calc(0.5rem + 0.2vmin)'}}/>),
+        icon={faCloud} 
+        style={{fontSize: 'calc(0.5rem + 1vmin)', color:'yellow'}}/>),
+      });
+      const warningGasMarker = divIcon({
+        html: renderToStaticMarkup(<FontAwesomeIcon 
+        icon={faCloud} 
+        style={{fontSize: 'calc(0.5rem + 1vmin)', color:'red'}}/>),
       });
     const pinMarker = divIcon({
     html: renderToStaticMarkup(<FontAwesomeIcon 
         icon={faMapMarkerAlt} 
-        style={{fontSize: 'calc(0.5rem + 5vmin)',
-                color: 'red',
-            zIndex: 2000}}/>),
+        style={{fontSize: 'calc(0.5rem + 4vmin)',
+        color: 'red',
+        zIndex: 2000}}/>),
     });
 
 
@@ -124,7 +129,7 @@ export default function LeafletMap() {
                 <p>Inovasi Rompi Anjing Pelacak Guna Meningkatkan Efisiensi Proses Evakuasi Korban Bencana Alam</p>
                 <div className='dog-list'>
                     <div className='dog'>
-                        <FontAwesomeIcon icon={faDog} style={{fontSize: 'calc(0.5rem + 5vmin)'}} onClick={() => setMapStart({
+                        <FontAwesomeIcon icon={faPaw} style={{fontSize: 'calc(0.5rem + 5vmin)'}} onClick={() => setMapStart({
                             lat: MarkerList[(MarkerList.length-1)].lat,
                             lng: MarkerList[(MarkerList.length-1)].lng,
                         })}/>
@@ -150,7 +155,13 @@ export default function LeafletMap() {
                     {MarkerList.map((marker, index) => {
                         let post = [marker.lat, marker.lng];
                         return (
-                            <Marker key={index} position={post} icon={((marker.Status == 'P') ? pinMarker : ((index == (MarkerList.length - 1)) ? dogMarker : trackMarker))}>
+                            <Marker key={index} position={post} 
+                            icon={
+                            marker.Status === 'P' ? pinMarker : 
+                            index === (MarkerList.length - 1) ? dogMarker : 
+                            marker.gas > 0.7 ? warningGasMarker :
+                            marker.gas > 0.4 ? cautionGasMarker :
+                            trackMarker}>
                                 <Popup
                                     tipSize={5}
                                     anchor="bottom-right"
@@ -159,12 +170,12 @@ export default function LeafletMap() {
                                 >
                                     <p>
                                         <strong>Anjing no: {marker.no} </strong>
-                                        , data ke-{index}
+                                        , data ke-{index + 1}
                                         <br />
                                         Status Pencarian: {((marker.status == "T") ? 'Track' : 'Pin')}
                                         <br />
-                                        {/* Status Gas: {marker.gas}
-                                            <br /> */}
+                                        Status Gas: {marker.gas}
+                                            <br />
                                         Latitude: {marker.lat}
                                         <br />
                                         Longitude: {marker.lng}
@@ -176,13 +187,7 @@ export default function LeafletMap() {
 
                     })}
 
-                    {/* </MarkerClusterGroup> */}
-                    {/* {MarkerList.map((marker, index) => {
-                        let post = [marker.lat, marker.lng];
-                        return ( */}
-                    {/* );
-                })} */}
-                    <Polyline color="purple" positions={latlngs} />
+                    <Polyline color="grey" positions={latlngs} />
 
                 </Map>
             </div >
