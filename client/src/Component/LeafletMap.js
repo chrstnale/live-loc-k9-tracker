@@ -9,6 +9,7 @@ import 'leaflet-offline';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCircle, faCloud, faDog, faDotCircle, faMap, faMapMarked, faMapMarker, faMapMarkerAlt, faMarker, faPaw, faSearch } from "@fortawesome/free-solid-svg-icons";
 import { GeoSearchControl, OpenStreetMapProvider } from 'leaflet-geosearch';
+import randomColor from "randomcolor";
 
 
 import K9Logo from "../assets/K9-logo.webp";
@@ -41,39 +42,16 @@ export default function LeafletMap() {
         }
     }, []);
 
-    const dogMarker = divIcon({
-        html: renderToStaticMarkup(
-        <div>
-        <FontAwesomeIcon
-            icon={faPaw}
-            style={{fontSize: 'calc(0.5rem + 2vmin)' }} />
-        </div>
-),
-    });
-    const trackMarker = divIcon({
-        // html: renderToStaticMarkup(<FontAwesomeIcon 
-        //   icon={faCircle}
-        // style={{fontSize: 'calc(0.5rem + 0.1vmin)', color: 'grey',}}/>),
-    });
-    const cautionGasMarker = divIcon({
-        html: renderToStaticMarkup(<FontAwesomeIcon
-            icon={faCloud}
-            style={{ fontSize: 'calc(0.5rem + 1vmin)', color: 'yellow' }} />),
-    });
-    const warningGasMarker = divIcon({
-        html: renderToStaticMarkup(<FontAwesomeIcon
-            icon={faCloud}
-            style={{ fontSize: 'calc(0.5rem + 1vmin)', color: 'red' }} />),
-    });
-    const pinMarker = divIcon({
-        html: renderToStaticMarkup(<FontAwesomeIcon
-            icon={faMapMarkerAlt}
-            style={{
-                fontSize: 'calc(0.5rem + 4vmin)',
-                color: 'red',
-                zIndex: 2000
-            }} />),
-    });
+
+    // const pinMarker = divIcon({
+    //     html: renderToStaticMarkup(<FontAwesomeIcon
+    //         icon={faMapMarkerAlt}
+    //         style={{
+    //             fontSize: 'calc(0.5rem + 3vmin)',
+    //             color: 'red',
+    //             zIndex: 2000
+    //         }} />),
+    // });
 
     var dogList = MarkerList.filter((elem, index) => 
         MarkerList.findIndex(obj => obj.no === elem.no) === index);
@@ -81,9 +59,11 @@ export default function LeafletMap() {
     // Create an empty array of array based on amount of dogs
     var latlngs = [];
     var distMarkerList = [];
+    var markerColors = [];
     for(var i = 0;i<dogList.length;i++){
         distMarkerList.push([])
         latlngs.push([])
+        markerColors.push(randomColor())
     }
 
     // Separate every dogs data to new array fom MarkerList
@@ -110,12 +90,61 @@ export default function LeafletMap() {
             }
         }
     }
+    function getColor(index){
+        console.log('markerColorss huaasuu', markerColors[index])
+        return markerColors[index]
+    }
+
+    function getMarker(index){
+        const dogMarker = divIcon({
+            html: renderToStaticMarkup(
+            <div>
+            <FontAwesomeIcon
+                icon={faPaw}
+                style={{
+                    fontSize: 'calc(0.5rem + 2vmin)',
+                    color: getColor(index),
+                    }} />
+            </div>),
+        });
+        console.log('markerColorss huaa', markerColors[index])
+        return dogMarker;
+    }
+    function getPin(index){
+        const pinMarker = divIcon({
+            html: renderToStaticMarkup(<FontAwesomeIcon
+                icon={faMapMarkerAlt}
+                style={{
+                    fontSize: 'calc(0.5rem + 3vmin)',
+                    color: markerColors[index],
+                    zIndex: 2000
+                }} />),
+        });
+        return pinMarker;
+    }
+    const trackMarker = divIcon({
+        // html: renderToStaticMarkup(<FontAwesomeIcon 
+        //   icon={faCircle}
+        // style={{fontSize: 'calc(0.5rem + 0.1vmin)', color: 'grey',}}/>),
+    });
+    const cautionGasMarker = divIcon({
+        html: renderToStaticMarkup(<FontAwesomeIcon
+            icon={faCloud}
+            style={{ fontSize: 'calc(0.5rem + 1vmin)', color: 'yellow' }} />),
+    });
+    const warningGasMarker = divIcon({
+        html: renderToStaticMarkup(<FontAwesomeIcon
+            icon={faCloud}
+            style={{ fontSize: 'calc(0.5rem + 1vmin)', color: 'red' }} />),
+    });
 
     console.log('dogList', dogList)
     console.log('distMarkerList', distMarkerList)
     console.log('MarkerList', MarkerList)
     console.log('Latlngs 0', latlngs[0])
     console.log('Latlngs 1', latlngs[1])
+    console.log('Our colors', markerColors)
+
 
     return (
         <Container>
@@ -157,7 +186,7 @@ export default function LeafletMap() {
                         url="https://{s}.tile.osm.org/{z}/{x}/{y}.png"
                     />
                     {
-                        distMarkerList.map((dog,index) => {
+                        distMarkerList.map((dog,markerIndex) => {
                             console.log('doggy', dog)
                             return(
                                 dog.map((marker, index) => {
@@ -166,10 +195,10 @@ export default function LeafletMap() {
                                 return (
                                     <Marker key={index} position={post}
                                         icon={
-                                            marker.Status === 'P' ? pinMarker :
-                                                index === (dog.length - 1) ? dogMarker :
-                                                    marker.gas > 0.7 ? warningGasMarker :
-                                                        marker.gas > 0.4 ? cautionGasMarker :
+                                            marker.Status === 'P' ? getPin(markerIndex) :
+                                            index === (dog.length - 1) ? getMarker(markerIndex) :
+                                            marker.gas > 0.7 ? warningGasMarker :
+                                            marker.gas > 0.4 ? cautionGasMarker :
                                                             trackMarker}>
                                         <Popup
                                             tipSize={5}
@@ -199,7 +228,8 @@ export default function LeafletMap() {
                     }
                     {latlngs.map((line, index) => {
                         return(
-                            <Polyline color="grey" positions={line} />
+                            // Warninggggg!!!, getColor can get wrong index + 1
+                            <Polyline color={markerColors[index]} positions={line} />
                         )
                     })}
 
