@@ -98,6 +98,7 @@ export const MarkerList = [
   lng: 110.420787,
   Status: 'T',
 },
+
 {
   no : 1,
   lat: -7.689492,
@@ -616,32 +617,26 @@ export const MarkerList = [
 },
 {
   no : 1,
-  lat: -7.689568,
-  lng: 110.420736,
-  Status: 'T',
-},
-{
-  no : 1,
   lat: -7.689569,
   lng: 110.420736,
   Status: 'T',
 },
 {
-  no : 1,
-  lat: -7.689571,
-  lng: 110.420737,
+  no : 2,
+  lat: -7.68979,
+  lng: 110.420835,
   Status: 'T',
 },
 {
-  no : 1,
-  lat: -7.689572,
-  lng: 110.420737,
+  no : 2,
+  lat: -7.68980,
+  lng: 110.420835,
   Status: 'T',
 },
 {
-  no : 1,
-  lat: -7.689572,
-  lng: 110.420737,
+  no : 2,
+  lat: -7.68980,
+  lng: 110.420836,
   Status: 'T',
 },
 

@@ -1,63 +1,20 @@
-import { Map, Marker, Popup, TileLayer, ZoomControl,Polyline} from 'react-leaflet';
+import { Map, Marker, Popup, TileLayer, ZoomControl, Polyline } from 'react-leaflet';
 import React, { useState, useEffect } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import L, {divIcon} from "leaflet";
+import L, { divIcon, map } from "leaflet";
 import styled from 'styled-components';
 import MarkerClusterGroup from "react-leaflet-markercluster";
 import localforage from 'localforage';
 import 'leaflet-offline';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCloud, faDog, faMap, faMapMarked, faMapMarker, faMapMarkerAlt, faMarker, faPaw, faSearch } from "@fortawesome/free-solid-svg-icons";
+import { faCircle, faCloud, faDog, faDotCircle, faMap, faMapMarked, faMapMarker, faMapMarkerAlt, faMarker, faPaw, faSearch } from "@fortawesome/free-solid-svg-icons";
 import { GeoSearchControl, OpenStreetMapProvider } from 'leaflet-geosearch';
 
 
 import K9Logo from "../assets/K9-logo.webp";
 import DogEmoticon from "../assets/dog.webp";
 import { MarkerList } from "./MarkerList";
-
-//Custom marker Icons
-// const trackMarker = new L.icon({
-//     iconUrl: require('../assets/track.webp').default,
-//     iconSize: new L.Point(15, 15)
-// });
-// const dogMarker = new L.icon({
-//     iconUrl: require('../assets/dog.webp').default,
-//     iconSize: new L.Point(30, 30)
-// });
-// const pinMarker = new L.icon({
-//     iconUrl: require('../assets/pin.webp').default,
-//     iconSize: new L.Point(25, 41),
-// });
-
-// const searchControl = new GeoSearchControl({ //geosearch object
-//     provider: new OpenStreetMapProvider(),
-//     // style: 'button',
-//     showMarker: true,
-//     autoComplete: true,
-//     showPopup: false,
-//     autoClose: true,
-//     retainZoomLevel: false,
-//     animateZoom: true,
-//     keepResult: false,
-//     searchLabel: 'Cari...'
-// });
-// function LocationMarker() {
-//     const [position, setPosition] = useState(null)
-//     const map = useMapEvents({
-//       click() {
-//         map.locate()
-//       },
-//       locationfound(e) {
-//         setPosition(e.latlng)
-//         map.flyTo(e.latlng, map.getZoom())
-//       },
-//     })
-//     return position === null ? null : (
-//       <Marker position={position}>
-//         <Popup>You are here</Popup>
-//       </Marker>
-//     )
-//   }
+import { object } from 'prop-types';
 
 export default function LeafletMap() {
     // Map initial position
@@ -68,16 +25,10 @@ export default function LeafletMap() {
         zoom: 13,
         maxZoom: 25,
     });
-    var latlngs = [];
-    for (let i = 0; i < MarkerList.length; i++) {
-        latlngs.push(
-          [MarkerList[i].lat, MarkerList[i].lng]
-        );
-    }
 
     useEffect(() => {
         let maps = L.DomUtil.get('map-id');
-        if(maps == null){
+        if (maps == null) {
             maps = L.map('map-id');
             const offlineLayer = L.tileLayer.offline('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', localforage, {
                 attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
@@ -91,33 +42,80 @@ export default function LeafletMap() {
     }, []);
 
     const dogMarker = divIcon({
-      html: renderToStaticMarkup(<FontAwesomeIcon 
-        icon={faPaw}
-      style={{fontSize: 'calc(0.5rem + 2vmin)'}}/>),
+        html: renderToStaticMarkup(
+        <div>
+        <FontAwesomeIcon
+            icon={faPaw}
+            style={{fontSize: 'calc(0.5rem + 2vmin)' }} />
+        </div>
+),
     });
     const trackMarker = divIcon({
         // html: renderToStaticMarkup(<FontAwesomeIcon 
-        //   icon={faDog}
-        // style={{fontSize: 'calc(0.5rem + 2vmin)'}}/>),
-      });
+        //   icon={faCircle}
+        // style={{fontSize: 'calc(0.5rem + 0.1vmin)', color: 'grey',}}/>),
+    });
     const cautionGasMarker = divIcon({
-        html: renderToStaticMarkup(<FontAwesomeIcon 
-        icon={faCloud} 
-        style={{fontSize: 'calc(0.5rem + 1vmin)', color:'yellow'}}/>),
-      });
-      const warningGasMarker = divIcon({
-        html: renderToStaticMarkup(<FontAwesomeIcon 
-        icon={faCloud} 
-        style={{fontSize: 'calc(0.5rem + 1vmin)', color:'red'}}/>),
-      });
+        html: renderToStaticMarkup(<FontAwesomeIcon
+            icon={faCloud}
+            style={{ fontSize: 'calc(0.5rem + 1vmin)', color: 'yellow' }} />),
+    });
+    const warningGasMarker = divIcon({
+        html: renderToStaticMarkup(<FontAwesomeIcon
+            icon={faCloud}
+            style={{ fontSize: 'calc(0.5rem + 1vmin)', color: 'red' }} />),
+    });
     const pinMarker = divIcon({
-    html: renderToStaticMarkup(<FontAwesomeIcon 
-        icon={faMapMarkerAlt} 
-        style={{fontSize: 'calc(0.5rem + 4vmin)',
-        color: 'red',
-        zIndex: 2000}}/>),
+        html: renderToStaticMarkup(<FontAwesomeIcon
+            icon={faMapMarkerAlt}
+            style={{
+                fontSize: 'calc(0.5rem + 4vmin)',
+                color: 'red',
+                zIndex: 2000
+            }} />),
     });
 
+    var dogList = MarkerList.filter((elem, index) => 
+        MarkerList.findIndex(obj => obj.no === elem.no) === index);
+
+    // Create an empty array of array based on amount of dogs
+    var latlngs = [];
+    var distMarkerList = [];
+    for(var i = 0;i<dogList.length;i++){
+        distMarkerList.push([])
+        latlngs.push([])
+    }
+
+    // Separate every dogs data to new array fom MarkerList
+    for(var i = 0; i < MarkerList.length; i++) {
+        for(var j = 0;j<dogList.length;j++){
+            if(MarkerList[i].no === dogList[j].no){
+                distMarkerList[j].push(MarkerList[i])
+                console.log(distMarkerList)
+            }
+        }
+    }
+
+    // Reverse distMarkerList
+    // for(var i = 0;i<dogList.length;i++){
+    //     distMarkerList[i].reverse()
+    // }
+
+    for (let i = 0; i < MarkerList.length; i++) {
+        for(var j = 0;j<dogList.length;j++){
+            if(MarkerList[i].no === dogList[j].no){
+                latlngs[j].push(
+                    [MarkerList[i].lat, MarkerList[i].lng]
+                );
+            }
+        }
+    }
+
+    console.log('dogList', dogList)
+    console.log('distMarkerList', distMarkerList)
+    console.log('MarkerList', MarkerList)
+    console.log('Latlngs 0', latlngs[0])
+    console.log('Latlngs 1', latlngs[1])
 
     return (
         <Container>
@@ -128,21 +126,28 @@ export default function LeafletMap() {
                 </div>
                 <p>Inovasi Rompi Anjing Pelacak Guna Meningkatkan Efisiensi Proses Evakuasi Korban Bencana Alam</p>
                 <div className='dog-list'>
-                    <div className='dog'>
-                        <FontAwesomeIcon icon={faPaw} style={{fontSize: 'calc(0.5rem + 5vmin)'}} onClick={() => setMapStart({
-                            lat: MarkerList[(MarkerList.length-1)].lat,
-                            lng: MarkerList[(MarkerList.length-1)].lng,
-                        })}/>
-                        <p>
-                            <strong>Anjing no: 1</strong>, data ke-1
-                            <div>
-                                <br/>
-                                <p>- Mark: Track<br />- Gas: 4.0</p>
-                                <p>- Lat: lat<br />- Long: long</p>
-                            </div>
-                        </p>
 
-                    </div>
+                    {dogList.map((dog, index) => {
+                        return (
+                            <div className='dog'>
+                                <FontAwesomeIcon icon={faPaw} style={{ fontSize: 'calc(0.5rem + 5vmin)' }} onClick={() => setMapStart({
+                                    lat: MarkerList[(MarkerList.length - 1)].lat,
+                                    lng: MarkerList[(MarkerList.length - 1)].lng,
+                                })} />
+                                <p>
+                                    <strong>Anjing no: {dog.no}</strong>, 
+                                    <div>
+                                        <br />
+                                        <p>- Mark: {dog.Status}<br />- Gas: {dog.gas}</p>
+                                        <p>- Lat: {dog.lat}<br />- Long: {dog.lng}</p>
+                                    </div>
+                                </p>
+
+                            </div>
+                        )
+                    })}
+
+
                 </div>
             </div>
             <div id="map-id">
@@ -151,43 +156,52 @@ export default function LeafletMap() {
                         attribution="&copy; <a href=&quot;https://osm.org/copyright&quot;>OpenStreetMap</a> contributors"
                         url="https://{s}.tile.osm.org/{z}/{x}/{y}.png"
                     />
-                    {/* <MarkerClusterGroup> */}
-                    {MarkerList.map((marker, index) => {
-                        let post = [marker.lat, marker.lng];
-                        return (
-                            <Marker key={index} position={post} 
-                            icon={
-                            marker.Status === 'P' ? pinMarker : 
-                            index === (MarkerList.length - 1) ? dogMarker : 
-                            marker.gas > 0.7 ? warningGasMarker :
-                            marker.gas > 0.4 ? cautionGasMarker :
-                            trackMarker}>
-                                <Popup
-                                    tipSize={5}
-                                    anchor="bottom-right"
-                                    longitude={marker.lng}
-                                    latitude={marker.lat}
-                                >
-                                    <p>
-                                        <strong>Anjing no: {marker.no} </strong>
-                                        , data ke-{index + 1}
-                                        <br />
-                                        Status Pencarian: {((marker.status == "T") ? 'Track' : 'Pin')}
-                                        <br />
-                                        Status Gas: {marker.gas}
-                                            <br />
-                                        Latitude: {marker.lat}
-                                        <br />
-                                        Longitude: {marker.lng}
-                                    </p>
-                                </Popup>
-                            </Marker>
-                        );
+                    {
+                        distMarkerList.map((dog,index) => {
+                            console.log('doggy', dog)
+                            return(
+                                dog.map((marker, index) => {
+                                console.log('marker lat', marker.lat)
+                                let post = [marker.lat, marker.lng];
+                                return (
+                                    <Marker key={index} position={post}
+                                        icon={
+                                            marker.Status === 'P' ? pinMarker :
+                                                index === (dog.length - 1) ? dogMarker :
+                                                    marker.gas > 0.7 ? warningGasMarker :
+                                                        marker.gas > 0.4 ? cautionGasMarker :
+                                                            trackMarker}>
+                                        <Popup
+                                            tipSize={5}
+                                            anchor="bottom-right"
+                                            longitude={marker.lng}
+                                            latitude={marker.lat}
+                                        >
+                                            <p>
+                                                <strong>Anjing no: {marker.no}</strong>, data ke {index + 1}
+                                                <br />
+                                                Status Pencarian: {((marker.Status === "T") ? 'Track' : 'Pin')}
+                                                <br />
+                                                Status Gas: {marker.gas}
+                                                <br />
+                                                Latitude: {marker.lat}
+                                                <br />
+                                                Longitude: {marker.lng}
+                                            </p>
+                                        </Popup>
+                                    </Marker>
+                                );
+                            })
 
-
+                            )
+                           
+                        })
+                    }
+                    {latlngs.map((line, index) => {
+                        return(
+                            <Polyline color="grey" positions={line} />
+                        )
                     })}
-
-                    <Polyline color="grey" positions={latlngs} />
 
                 </Map>
             </div >
