@@ -7,7 +7,7 @@ import MarkerClusterGroup from "react-leaflet-markercluster";
 import localforage from 'localforage';
 import 'leaflet-offline';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCircle, faCloud, faDog, faDotCircle, faMap, faMapMarked, faMapMarker, faMapMarkerAlt, faMarker, faPaw, faSearch } from "@fortawesome/free-solid-svg-icons";
+import { faCampground, faCircle, faCloud, faDog, faDotCircle, faHouseUser, faLaptopHouse, faMap, faMapMarked, faMapMarker, faMapMarkerAlt, faMarker, faPaw, faSearch } from "@fortawesome/free-solid-svg-icons";
 import { GeoSearchControl, OpenStreetMapProvider } from 'leaflet-geosearch';
 import randomColor from "randomcolor";
 
@@ -16,15 +16,18 @@ import K9Logo from "../assets/K9-logo.webp";
 import DogEmoticon from "../assets/dog.webp";
 import { MarkerList } from "./MarkerList";
 import { object } from 'prop-types';
+import useGeoLocation from './useGeoLocation';
 
 export default function LeafletMap() {
+
+    const location = useGeoLocation();
     // Map initial position
 
     const [mapStart, setMapStart] = useState({
         lat: -7.7956,
         lng: 110.3695,
         zoom: 13,
-        maxZoom: 25,
+        maxZoom: 19,
     });
 
     useEffect(() => {
@@ -35,7 +38,7 @@ export default function LeafletMap() {
                 attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
                 subdomains: 'abc',
                 minZoom: 15,
-                maxZoom: 30,
+                maxZoom: 18,
                 crossOrigin: true
             });
             offlineLayer.addTo(maps);
@@ -53,23 +56,23 @@ export default function LeafletMap() {
     //         }} />),
     // });
 
-    var dogList = MarkerList.filter((elem, index) => 
+    var dogList = MarkerList.filter((elem, index) =>
         MarkerList.findIndex(obj => obj.no === elem.no) === index);
-
     // Create an empty array of array based on amount of dogs
     var latlngs = [];
     var distMarkerList = [];
     var markerColors = [];
-    for(var i = 0;i<dogList.length;i++){
+    for (var i = 0; i < dogList.length; i++) {
         distMarkerList.push([])
         latlngs.push([])
         markerColors.push(randomColor())
+        console.log('latlngss', latlngs)
     }
 
     // Separate every dogs data to new array fom MarkerList
-    for(var i = 0; i < MarkerList.length; i++) {
-        for(var j = 0;j<dogList.length;j++){
-            if(MarkerList[i].no === dogList[j].no){
+    for (var i = 0; i < MarkerList.length; i++) {
+        for (var j = 0; j < dogList.length; j++) {
+            if (MarkerList[i].no === dogList[j].no) {
                 distMarkerList[j].push(MarkerList[i])
                 console.log(distMarkerList)
             }
@@ -82,43 +85,96 @@ export default function LeafletMap() {
     // }
 
     for (let i = 0; i < MarkerList.length; i++) {
-        for(var j = 0;j<dogList.length;j++){
-            if(MarkerList[i].no === dogList[j].no){
+        for (var j = 0; j < dogList.length; j++) {
+            if (MarkerList[i].no === dogList[j].no) {
                 latlngs[j].push(
                     [MarkerList[i].lat, MarkerList[i].lng]
                 );
             }
         }
     }
-    function getColor(index){
+    function getColor(index) {
         console.log('markerColorss huaasuu', markerColors[index])
         return markerColors[index]
     }
 
-    function getMarker(index){
+    const gpsMarker = divIcon({
+        html: renderToStaticMarkup(
+            <div style={{ position: 'relative' }}>
+                <FontAwesomeIcon
+                    icon={faHouseUser}
+                    style={{
+                        fontSize: 'calc(0.5rem + 4.5vmin)',
+                        color: 'white',
+                        zIndex: 2999,
+                        position: 'absolute',
+                    }} />
+                <FontAwesomeIcon
+                    icon={faHouseUser}
+                    style={{
+                        fontSize: 'calc(0.5rem + 4vmin)',
+                        color: 'black',
+                        position: 'absolute',
+                        top: '70%',
+                        left: '5%',
+                        zIndex: 3000,
+
+                    }} />
+            </div>
+        ),
+    })
+
+    function getMarker(index) {
         const dogMarker = divIcon({
             html: renderToStaticMarkup(
-            <div>
-            <FontAwesomeIcon
-                icon={faPaw}
-                style={{
-                    fontSize: 'calc(0.5rem + 2vmin)',
-                    color: getColor(index),
-                    }} />
-            </div>),
+                <div style={{ position: 'relative' }}>
+                    <FontAwesomeIcon
+                        icon={faPaw}
+                        style={{
+                            fontSize: 'calc(0.5rem + 2.5vmin)',
+                            color: 'black',
+                            position: 'absolute',
+                        }} />
+                    <FontAwesomeIcon
+                        icon={faPaw}
+                        style={{
+                            fontSize: 'calc(0.5rem + 2vmin)',
+                            color: getColor(index),
+                            position: 'absolute',
+                            top: '70%',
+                            left: '5%'
+                        }} />
+                </div>),
+            shadowSize: 'calc(0.5rem + 2vmin)', // size of the shadow
+            shadowAnchor: [4, 62],  // the same for the shadow
         });
         console.log('markerColorss huaa', markerColors[index])
         return dogMarker;
     }
-    function getPin(index){
+    function getPin(index) {
         const pinMarker = divIcon({
-            html: renderToStaticMarkup(<FontAwesomeIcon
-                icon={faMapMarkerAlt}
-                style={{
-                    fontSize: 'calc(0.5rem + 3vmin)',
-                    color: markerColors[index],
-                    zIndex: 2000
-                }} />),
+            html: renderToStaticMarkup(
+                <div style={{ position: 'relative' }}>
+                    <FontAwesomeIcon
+                        icon={faMapMarker}
+                        style={{
+                            fontSize: 'calc(0.5rem + 3.5vmin)',
+                            color: 'black',
+                            zIndex: 1999,
+                            position: 'absolute',
+                        }} />
+                    <FontAwesomeIcon
+                        icon={faMapMarkerAlt}
+                        style={{
+                            fontSize: 'calc(0.5rem + 3vmin)',
+                            color: getColor(index),
+                            position: 'absolute',
+                            top: '70%',
+                            left: '5%',
+                            zIndex: 2000,
+
+                        }} />
+                </div>),
         });
         return pinMarker;
     }
@@ -128,14 +184,50 @@ export default function LeafletMap() {
         // style={{fontSize: 'calc(0.5rem + 0.1vmin)', color: 'grey',}}/>),
     });
     const cautionGasMarker = divIcon({
-        html: renderToStaticMarkup(<FontAwesomeIcon
-            icon={faCloud}
-            style={{ fontSize: 'calc(0.5rem + 1vmin)', color: 'yellow' }} />),
+        html: renderToStaticMarkup(
+            <div style={{ position: 'relative' }}>
+                <FontAwesomeIcon
+                    icon={faCloud}
+                    style={{
+                        fontSize: 'calc(0.5rem + 1.5vmin)',
+                        color: 'black',
+                        position: 'absolute'
+                    }} />
+
+                <FontAwesomeIcon
+                    icon={faCloud}
+                    style={{
+                        fontSize: 'calc(0.5rem + 1vmin)',
+                        color: 'yellow',
+                        top: '70%',
+                        left: '10%',
+                        position: 'absolute'
+                    }} />
+            </div>
+        ),
     });
     const warningGasMarker = divIcon({
-        html: renderToStaticMarkup(<FontAwesomeIcon
-            icon={faCloud}
-            style={{ fontSize: 'calc(0.5rem + 1vmin)', color: 'red' }} />),
+        html: renderToStaticMarkup(
+            <div style={{ position: 'relative' }}>
+                <FontAwesomeIcon
+                    icon={faCloud}
+                    style={{
+                        fontSize: 'calc(0.5rem + 1.5vmin)',
+                        color: 'black',
+                        position: 'absolute'
+                    }} />
+
+                <FontAwesomeIcon
+                    icon={faCloud}
+                    style={{
+                        fontSize: 'calc(0.5rem + 1vmin)',
+                        color: 'red',
+                        top: '70%',
+                        left: '10%',
+                        position: 'absolute'
+                    }} />
+            </div>
+        ),
     });
 
     console.log('dogList', dogList)
@@ -153,81 +245,99 @@ export default function LeafletMap() {
                     <img src={K9Logo} alt="K9 Logo"></img>
                     <h1>Live-Loc K9 Tracking App</h1>
                 </div>
-                <p>Inovasi Rompi Anjing Pelacak Guna Meningkatkan Efisiensi Proses Evakuasi Korban Bencana Alam</p>
+                <p className='desc'>Inovasi Rompi Anjing Pelacak Guna Meningkatkan Efisiensi Proses Evakuasi Korban Bencana Alam</p>
+                <p style={{padding: '1vmin', margin: 0}}>Legenda:</p>
+                <div className='legend'>
+                <span><FontAwesomeIcon icon={faPaw} /> Anjing</span>
+                <span><FontAwesomeIcon icon={faHouseUser} /> Device</span>
+                <span><FontAwesomeIcon icon={faMapMarkerAlt} /> Korban</span>
+                <span><FontAwesomeIcon icon={faCloud} /> Gas</span>
+                </div>
                 <div className='dog-list'>
-
                     {dogList.map((dog, index) => {
                         return (
                             <div className='dog'>
-                                <FontAwesomeIcon icon={faPaw} style={{ fontSize: 'calc(0.5rem + 5vmin)' }} onClick={() => setMapStart({
-                                    lat: MarkerList[(MarkerList.length - 1)].lat,
-                                    lng: MarkerList[(MarkerList.length - 1)].lng,
-                                })} />
+                                <div style={{padding: '2vmin'}}>
+                                    <FontAwesomeIcon
+                                        icon={faPaw}
+                                        style={{
+                                            fontSize: 'calc(0.5rem + 4vmin)',
+                                            color: getColor(index),
+                                        }} />
+                                </div>
                                 <p>
-                                    <strong>Anjing no: {dog.no}</strong>, 
+                                    <strong>Anjing no: {dog.no}</strong>, <small><span>data ke-{distMarkerList[index].length}</span></small>
                                     <div>
-                                        <br />
-                                        <p>- Mark: {dog.Status}<br />- Gas: {dog.gas}</p>
-                                        <p>- Lat: {dog.lat}<br />- Long: {dog.lng}</p>
+                                        <p>lat: {dog.lat}, long: {dog.lng}</p>
                                     </div>
                                 </p>
 
                             </div>
                         )
                     })}
-
-
                 </div>
             </div>
             <div id="map-id">
-                <Map center={[mapStart.lat, mapStart.lng]} zoom={mapStart.zoom} maxZoom={mapStart.maxZoom} id="map">
+                <Map center={(location.loaded) ? [location.coordinates.lat, location.coordinates.lng] :
+                    [mapStart.lat, mapStart.lng]}
+                    zoom={(location.loaded) ? 15 : mapStart.zoom}
+                    maxZoom={mapStart.maxZoom}
+                    id="map">
                     <TileLayer
                         attribution="&copy; <a href=&quot;https://osm.org/copyright&quot;>OpenStreetMap</a> contributors"
                         url="https://{s}.tile.osm.org/{z}/{x}/{y}.png"
                     />
+                    <Marker icon={gpsMarker} position={[location.coordinates.lat, location.coordinates.lng]}>
+                        <Popup
+                            tipSize={5}
+                            anchor="bottom-right"
+                            longitude={location.coordinates.lng}
+                            latitude={location.coordinates.lat}
+                        >
+                            <p>Your location is here</p>
+                        </Popup>
+                    </Marker>
                     {
-                        distMarkerList.map((dog,markerIndex) => {
+                        distMarkerList.map((dog, markerIndex) => {
                             console.log('doggy', dog)
-                            return(
+                            return (
                                 dog.map((marker, index) => {
-                                console.log('marker lat', marker.lat)
-                                let post = [marker.lat, marker.lng];
-                                return (
-                                    <Marker key={index} position={post}
-                                        icon={
-                                            marker.Status === 'P' ? getPin(markerIndex) :
-                                            index === (dog.length - 1) ? getMarker(markerIndex) :
-                                            marker.gas > 0.7 ? warningGasMarker :
-                                            marker.gas > 0.4 ? cautionGasMarker :
-                                                            trackMarker}>
-                                        <Popup
-                                            tipSize={5}
-                                            anchor="bottom-right"
-                                            longitude={marker.lng}
-                                            latitude={marker.lat}
-                                        >
-                                            <p>
-                                                <strong>Anjing no: {marker.no}</strong>, data ke {index + 1}
-                                                <br />
-                                                Status Pencarian: {((marker.Status === "T") ? 'Track' : 'Pin')}
-                                                <br />
-                                                Status Gas: {marker.gas}
-                                                <br />
-                                                Latitude: {marker.lat}
-                                                <br />
-                                                Longitude: {marker.lng}
-                                            </p>
-                                        </Popup>
-                                    </Marker>
-                                );
-                            })
+                                    console.log('marker lat', marker.lat)
+                                    let post = [marker.lat, marker.lng];
+                                    return (
+                                        <Marker key={index} position={post}
+                                            icon={
+                                                marker.Status === 'P' ? getPin(markerIndex) :
+                                                    index === (dog.length - 1) ? getMarker(markerIndex) :
+                                                        marker.gas > 0.7 ? warningGasMarker :
+                                                            marker.gas > 0.4 ? cautionGasMarker :
+                                                                trackMarker}>
+                                            <Popup
+                                                tipSize={5}
+                                                anchor="bottom-right"
+                                                longitude={marker.lng}
+                                                latitude={marker.lat}
+                                            >
+                                                <span>
+                                                    <strong>Anjing no: {marker.no}</strong>, <small><span>data ke {index + 1}</span></small>
+                                                    <ul style={{margin: 0, paddingLeft: '3vmin'}}>
+                                                        <li>status: {((marker.Status === "T") ? 'mencari' : 'pin!')}</li>
+                                                        <li>gas: {marker.gas}</li>
+                                                        <li>latitude: {marker.lat}</li>
+                                                        <li>longitutde: {marker.lng}</li>
+                                                    </ul>
+                                                </span>
+                                            </Popup>
+                                        </Marker>
+                                    );
+                                })
 
                             )
-                           
+
                         })
                     }
                     {latlngs.map((line, index) => {
-                        return(
+                        return (
                             // Warninggggg!!!, getColor can get wrong index + 1
                             <Polyline color={markerColors[index]} positions={line} />
                         )
@@ -280,7 +390,7 @@ const Container = styled.div`
         padding: 5vmin;
         float: left;
         flex-wrap: wrap;
-        align-items: center;
+        align-items: left;
         .title{
             display: flex;
             align-items: center;
@@ -291,13 +401,16 @@ const Container = styled.div`
             }
         }
 
+        .desc{
+            margin: 1vmin;
+        }
+
         .dog-list{
             width: 100%;
             align-items: flex-start;
             height: auto;
 
             .dog{
-                margin-bottom: 5vmin;
                 width: 100%;
                 height: auto;
                 display: flex;
@@ -322,6 +435,13 @@ const Container = styled.div`
                 }
 
                 
+            }
+        }
+        .legend{
+            font-size: 'calc(0.5rem + 1.5vmin)';
+            display: 'flex';
+            span{
+                padding: 1.5vmin;
             }
         }
                 

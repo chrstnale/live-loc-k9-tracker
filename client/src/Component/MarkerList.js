@@ -651,5 +651,11 @@ export const MarkerList = [
   lng: 110.420837,
   Status: 'T',
 },
+{
+  no : 2,
+  lat: -7.68992,
+  lng: 110.420840,
+  Status: 'T',
+},
 
 ];
