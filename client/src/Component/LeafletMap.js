@@ -30,8 +30,12 @@ export default function LeafletMap() {
         maxZoom: 19,
     });
 
+    const [rescueMarker, setRescueMarker] = useState([])
+    function addMarker(e) {
+        setRescueMarker(old => [...old, e.latlng])
+      }
+    let maps = L.DomUtil.get('map-id')
     useEffect(() => {
-        let maps = L.DomUtil.get('map-id');
         if (maps == null) {
             maps = L.map('map-id');
             const offlineLayer = L.tileLayer.offline('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', localforage, {
@@ -65,7 +69,7 @@ export default function LeafletMap() {
     for (var i = 0; i < dogList.length; i++) {
         distMarkerList.push([])
         latlngs.push([])
-        markerColors.push(randomColor())
+        markerColors.push(getColor(i))
         console.log('latlngss', latlngs)
     }
 
@@ -94,8 +98,32 @@ export default function LeafletMap() {
         }
     }
     function getColor(index) {
-        console.log('markerColorss huaasuu', markerColors[index])
-        return markerColors[index]
+        var color;
+        switch (index){
+            case 0:
+                color = '#86efa0'; 
+                break;
+            case 1:
+                color = '#e0b05e'; 
+                break;
+            case 2:
+                color = '#fc8082'; 
+                break;
+            case 3:
+                color = '#cc6ae2'; 
+                break;
+            case 4:
+                color = '#58d3a2';          
+                break;
+            case 5:
+                color = '#4834a3'; 
+                break;
+            default:
+                color = randomColor();
+                break;
+        }
+        return color;
+
     }
 
     const gpsMarker = divIcon({
@@ -148,7 +176,6 @@ export default function LeafletMap() {
             shadowSize: 'calc(0.5rem + 2vmin)', // size of the shadow
             shadowAnchor: [4, 62],  // the same for the shadow
         });
-        console.log('markerColorss huaa', markerColors[index])
         return dogMarker;
     }
     function getPin(index) {
@@ -235,7 +262,6 @@ export default function LeafletMap() {
     console.log('MarkerList', MarkerList)
     console.log('Latlngs 0', latlngs[0])
     console.log('Latlngs 1', latlngs[1])
-    console.log('Our colors', markerColors)
 
 
     return (
@@ -249,7 +275,7 @@ export default function LeafletMap() {
                 <p style={{padding: '1vmin', margin: 0}}>Legenda:</p>
                 <div className='legend'>
                 <span><FontAwesomeIcon icon={faPaw} /> Anjing</span>
-                <span><FontAwesomeIcon icon={faHouseUser} /> Device</span>
+                <span><FontAwesomeIcon icon={faHouseUser} /> Rescue Post</span>
                 <span><FontAwesomeIcon icon={faMapMarkerAlt} /> Korban</span>
                 <span><FontAwesomeIcon icon={faCloud} /> Gas</span>
                 </div>
@@ -384,7 +410,7 @@ const Container = styled.div`
 
     .box{
         width: 30vw;
-        height: 100vh;
+        height: 100%;
         display: flex;
         flex-direction: column;
         padding: 5vmin;
@@ -408,7 +434,8 @@ const Container = styled.div`
         .dog-list{
             width: 100%;
             align-items: flex-start;
-            height: auto;
+            height: 50%;
+            overflow: auto;
 
             .dog{
                 width: 100%;
@@ -417,7 +444,7 @@ const Container = styled.div`
                 align-items: center;
                 img{
                     width: 10%;
-                    padding: 2vmin;
+                    padding: 1vmin;
                     cursor: pointer;
                 }
 
@@ -440,7 +467,9 @@ const Container = styled.div`
         .legend{
             font-size: 'calc(0.5rem + 1.5vmin)';
             display: 'flex';
+            padding-bottom: 2vmin;
             span{
+                white-space: nowrap;
                 padding: 1.5vmin;
             }
         }
@@ -448,17 +477,19 @@ const Container = styled.div`
     }
     @media (max-width: 1024px){
         flex-direction: column;
+        padding: 5vmin;
         .box{
             order:2;
-            width: 100vw;
+            width: 100%;
             height: 30vh;
             
         }
 
         .map-id{
-            width:100vw;
+            width:100%;
             height: 70vh;;
         }
         
     }
+
 `
