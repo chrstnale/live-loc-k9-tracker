@@ -1,21 +1,16 @@
-import { Map, Marker, Popup, TileLayer, ZoomControl, Polyline } from 'react-leaflet';
+import { Map, Marker, Popup, TileLayer, Polyline } from 'react-leaflet';
 import React, { useState, useEffect } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import L, { divIcon, map } from "leaflet";
+import L, { divIcon } from "leaflet";
 import styled from 'styled-components';
-import MarkerClusterGroup from "react-leaflet-markercluster";
 import localforage from 'localforage';
 import 'leaflet-offline';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCampground, faCircle, faCloud, faDog, faDotCircle, faHouseUser, faLaptopHouse, faMap, faMapMarked, faMapMarker, faMapMarkerAlt, faMarker, faPaw, faSearch } from "@fortawesome/free-solid-svg-icons";
-import { GeoSearchControl, OpenStreetMapProvider } from 'leaflet-geosearch';
+import { faCloud, faMapMarker, faHouseUser, faMapMarkerAlt, faPaw } from "@fortawesome/free-solid-svg-icons";
 import randomColor from "randomcolor";
 
-
 import K9Logo from "../assets/K9-logo.webp";
-import DogEmoticon from "../assets/dog.webp";
 import { MarkerList } from "./MarkerList";
-import { object } from 'prop-types';
 import useGeoLocation from './useGeoLocation';
 
 export default function LeafletMap() {
@@ -30,10 +25,10 @@ export default function LeafletMap() {
         maxZoom: 19,
     });
 
-    const [rescueMarker, setRescueMarker] = useState([])
-    function addMarker(e) {
-        setRescueMarker(old => [...old, e.latlng])
-      }
+    // const [rescueMarker, setRescueMarker] = useState([])
+    // function addMarker(e) {
+    //     setRescueMarker(old => [...old, e.latlng])
+    //   }
     let maps = L.DomUtil.get('map-id')
     useEffect(() => {
         if (maps == null) {
@@ -59,6 +54,16 @@ export default function LeafletMap() {
     //             zIndex: 2000
     //         }} />),
     // });
+    function getData() {
+        fetch("http://localhost:5000/data").then(res => res.json().then(data => {
+            var feed = {no: data.no, gas: data.lat, lng: data.lng, gas: data.gas, Status: data.Status}
+            MarkerList.push(feed)
+            console.log(feed)
+            console.log(data)
+        }))
+    }
+  
+    setInterval(getData(), 3000)
 
     var dogList = MarkerList.filter((elem, index) =>
         MarkerList.findIndex(obj => obj.no === elem.no) === index);
@@ -70,7 +75,6 @@ export default function LeafletMap() {
         distMarkerList.push([])
         latlngs.push([])
         markerColors.push(getColor(i))
-        console.log('latlngss', latlngs)
     }
 
     // Separate every dogs data to new array fom MarkerList
@@ -78,7 +82,6 @@ export default function LeafletMap() {
         for (var j = 0; j < dogList.length; j++) {
             if (MarkerList[i].no === dogList[j].no) {
                 distMarkerList[j].push(MarkerList[i])
-                console.log(distMarkerList)
             }
         }
     }
@@ -257,11 +260,11 @@ export default function LeafletMap() {
         ),
     });
 
-    console.log('dogList', dogList)
-    console.log('distMarkerList', distMarkerList)
-    console.log('MarkerList', MarkerList)
-    console.log('Latlngs 0', latlngs[0])
-    console.log('Latlngs 1', latlngs[1])
+    // console.log('dogList', dogList)
+    // console.log('distMarkerList', distMarkerList)
+    // console.log('MarkerList', MarkerList)
+    // console.log('Latlngs 0', latlngs[0])
+    // console.log('Latlngs 1', latlngs[1])
 
 
     return (
@@ -325,10 +328,8 @@ export default function LeafletMap() {
                     </Marker>
                     {
                         distMarkerList.map((dog, markerIndex) => {
-                            console.log('doggy', dog)
                             return (
                                 dog.map((marker, index) => {
-                                    console.log('marker lat', marker.lat)
                                     let post = [marker.lat, marker.lng];
                                     return (
                                         <Marker key={index} position={post}
