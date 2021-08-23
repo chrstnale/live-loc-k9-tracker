@@ -24,7 +24,14 @@ export default function LeafletMap() {
         zoom: 13,
         maxZoom: 19,
     });
-    const [markers, setMarkers] = useState(MarkerList)
+    // const [markers, setMarkers] = useState(MarkerList)
+    const [distMarkerList, setDistMarkerList] = useState([[{ no: 1, lat: 7, lng: 111, gas: 2, Status: 'T' },],[{ no: 3, lat: 6, lng: 109, gas: 1, Status: 'T' },]])
+    const [latlngs, setLatLngs] = useState([0, 0],[0,0])
+    const [dogList, setDogList] = useState([
+        { no: 5, lat: 7, lng: 109, gas: 5, Status: 'T' },]
+    )
+    var markerColors = [];
+    const socket = io("http://localhost:5000");
 
     //Initialize leaflet map
     let maps = L.DomUtil.get('map-id')
@@ -43,53 +50,75 @@ export default function LeafletMap() {
     }, []);
 
     // Read socket.io on localhost
-    const socket = io("http://localhost:5000");
-    socket.on('serialdata', (dta) => {
-        pushMarker(dta.data);  
+    socket.on('serialdata', (data) => {
+        updateDog(data.dogs);
+        updateMarker(data.markers); 
+        updatePosition(data.position);
     })
 
-    // Declare arrays for dog list, markers, and polyline
-    var latlngs = [];
-    var distMarkerList = [];
-    var markerColors = [];
-
-    //Push new marker from array
-    function pushMarker(data){
-        console.log('dataaa',data)
-        var feed = {no: data[0], lat: data[1], lng: data[2], gas: data[3], Status: data[4]}
+    function updateDog(dog){
+        // console.log('doglist', dogMarker)
+        // var feed = {no: data[0], lat: data[1], lng: data[2], gas: data[3], Status: data[4]}
         // MarkerList.push(feed)
-        setMarkers(old => [...old, feed])
-        console.log('markerss',markers)
+        setDogList(old => [dog])
+        // console.log('markerss',markers)
+    }
+    function updateMarker(marker){
+        // console.log('marker',marker)
+        // var feed = {no: data[0], lat: data[1], lng: data[2], gas: data[3], Status: data[4]}
+        // MarkerList.push(feed)
+        setDistMarkerList(marker)
+        // console.log('markerss',markers)
+    }
+    function updatePosition(position){
+        // console.log('latlngs', position)
+        // var feed = {no: data[0], lat: data[1], lng: data[2], gas: data[3], Status: data[4]}
+        // MarkerList.push(feed)
+        setLatLngs(position)
+        // console.log('markerss',markers)
     }
 
-    // Booked array space for markers, and polyline
-    var dogList = MarkerList.filter((elem, index) =>
-        MarkerList.findIndex(obj => obj.no === elem.no) === index);
-    for (var i = 0; i < dogList.length; i++) {
-        distMarkerList.push([])
-        latlngs.push([])
-        markerColors.push(getColor(i))
-    }
+    // // Declare arrays for dog list, markers, and polyline
+    // var latlngs = [];
+    // var distMarkerList = [];
 
-    // Separate every dogs data to new array from MarkerList
-    for (var i = 0; i < MarkerList.length; i++) {
-        for (var j = 0; j < dogList.length; j++) {
-            if (MarkerList[i].no === dogList[j].no) {
-                distMarkerList[j].push(MarkerList[i])
-            }
-        }
-    }
+    // //Push new marker from array
+    // function pushMarker(data){
+    //     console.log('dataaa',data)
+    //     var feed = {no: data[0], lat: data[1], lng: data[2], gas: data[3], Status: data[4]}
+    //     // MarkerList.push(feed)
+    //     setMarkers(old => [...old, feed])
+    //     console.log('markerss',markers)
+    // }
 
-    // Separate every dogs data to new array fom MarkerList
-    for (let i = 0; i < MarkerList.length; i++) {
-        for (var j = 0; j < dogList.length; j++) {
-            if (MarkerList[i].no === dogList[j].no) {
-                latlngs[j].push(
-                    [MarkerList[i].lat, MarkerList[i].lng]
-                );
-            }
-        }
-    }
+    // // Booked array space for markers, and polyline
+    // var dogList = MarkerList.filter((elem, index) =>
+    //     MarkerList.findIndex(obj => obj.no === elem.no) === index);
+    // for (var i = 0; i < dogList.length; i++) {
+    //     distMarkerList.push([])
+    //     latlngs.push([])
+    //     markerColors.push(getColor(i))
+    // }
+
+    // // Separate every dogs data to new array from MarkerList
+    // for (var i = 0; i < MarkerList.length; i++) {
+    //     for (var j = 0; j < dogList.length; j++) {
+    //         if (MarkerList[i].no === dogList[j].no) {
+    //             distMarkerList[j].push(MarkerList[i])
+    //         }
+    //     }
+    // }
+
+    // // Separate every dogs data to new array fom MarkerList
+    // for (let i = 0; i < MarkerList.length; i++) {
+    //     for (var j = 0; j < dogList.length; j++) {
+    //         if (MarkerList[i].no === dogList[j].no) {
+    //             latlngs[j].push(
+    //                 [MarkerList[i].lat, MarkerList[i].lng]
+    //             );
+    //         }
+    //     }
+    // }
 
     // Icon settings
     function getColor(index) {
@@ -118,8 +147,13 @@ export default function LeafletMap() {
                 break;
         }
         return color;
-
     }
+
+    // Assign marker colors
+    // for (var i = 0; i < dogList.length; i++) {
+    //     markerColors.push(getColor(i))
+    // }
+
     const gpsMarker = divIcon({
         html: renderToStaticMarkup(
             <div style={{ position: 'relative' }}>
@@ -356,7 +390,7 @@ export default function LeafletMap() {
                     {latlngs.map((line, index) => {
                         return (
                             // Warninggggg!!!, getColor can get wrong index + 1
-                            <Polyline color={markerColors[index]} positions={line} />
+                            <Polyline color='black' positions={line} />
                         )
                     })}
 
