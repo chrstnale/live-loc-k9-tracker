@@ -1,5 +1,10 @@
 const express = require('express'), 
     app = express(),
+    server = require('http').Server(app),
+    io = require('socket.io')(server),
+    path = require("path"),
+    ports = 5000,
+    cors = require("cors"),
     SerialPort = require ('serialport'),
     port = new SerialPort('/dev/ttyUSB0', {
         baudRate: 115200,
@@ -9,8 +14,20 @@ const express = require('express'),
             return
         }
     })
+    server.listen(ports, () => console.log(`Listening on port ${ports}!`))
+    app.use(express.static(path.join(__dirname, "../client", "build")));
+    app.use(express.static('public'));
+    app.use(cors());
+    // app.use((req, res, next) => {
+    //     res.sendFile(path.join(__dirname, "../client", "/build", "index.html"));
+    //   });
+// const body = [];
 
-const body = [];
+io.on('connection', onConnection);
+var connectedSocket = null;
+function onConnection(socket){
+    connectedSocket = socket;
+}
 
 var stream
 app.get('/data', (req,res) => {
@@ -25,25 +42,18 @@ app.get('/data', (req,res) => {
         if (stream.length > 5){
             stream = {
                 "no": parseInt(stream[0]),
-                "lat": parseFloat(stream[0]),
-                "lng": parseFloat(stream[1]),
-                "gas": parseInt(stream[2]),
-                "Status":(stream[3])
+                "lat": parseFloat(stream[1]),
+                "lng": parseFloat(stream[2]),
+                "gas": parseInt(stream[3]),
+                "Status":(stream[4])
             }
-        }
+        } 
+        io.emit('serialdata', {data: stream})
         console.log(stream);
-        body.push(stream)
+        // body.push(stream)
     })
     res.json(stream)
 })
-// app.get('/', (req, res) => res.send('Hello World!'))
-
-const path = require("path");
-
-const ports = 5000
 // app.get("/", (req, res) => {
 //     res.sendFile(path.join(__dirname, "client/public", "index.html"));
 //    });
-
-
-app.listen(ports, () => console.log(`Listening on port ${ports}!`))

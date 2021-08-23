@@ -8,6 +8,7 @@ import 'leaflet-offline';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCloud, faMapMarker, faHouseUser, faMapMarkerAlt, faPaw } from "@fortawesome/free-solid-svg-icons";
 import randomColor from "randomcolor";
+import io from 'socket.io-client';
 
 import K9Logo from "../assets/K9-logo.webp";
 import { MarkerList } from "./MarkerList";
@@ -15,20 +16,17 @@ import useGeoLocation from './useGeoLocation';
 
 export default function LeafletMap() {
 
-    const location = useGeoLocation();
     // Map initial position
-
+    const location = useGeoLocation();
     const [mapStart, setMapStart] = useState({
         lat: -7.7956,
         lng: 110.3695,
         zoom: 13,
         maxZoom: 19,
     });
+    const [markers, setMarkers] = useState(MarkerList)
 
-    // const [rescueMarker, setRescueMarker] = useState([])
-    // function addMarker(e) {
-    //     setRescueMarker(old => [...old, e.latlng])
-    //   }
+    //Initialize leaflet map
     let maps = L.DomUtil.get('map-id')
     useEffect(() => {
         if (maps == null) {
@@ -44,40 +42,36 @@ export default function LeafletMap() {
         }
     }, []);
 
+    // Read socket.io on localhost
+    const socket = io("http://localhost:5000");
+    socket.on('serialdata', (dta) => {
+        pushMarker(dta.data);  
+    })
 
-    // const pinMarker = divIcon({
-    //     html: renderToStaticMarkup(<FontAwesomeIcon
-    //         icon={faMapMarkerAlt}
-    //         style={{
-    //             fontSize: 'calc(0.5rem + 3vmin)',
-    //             color: 'red',
-    //             zIndex: 2000
-    //         }} />),
-    // });
-    function getData() {
-        fetch("http://localhost:5000/data").then(res => res.json().then(data => {
-            var feed = {no: data.no, gas: data.lat, lng: data.lng, gas: data.gas, Status: data.Status}
-            MarkerList.push(feed)
-            console.log(feed)
-            console.log(data)
-        }))
-    }
-  
-    setInterval(getData(), 3000)
-
-    var dogList = MarkerList.filter((elem, index) =>
-        MarkerList.findIndex(obj => obj.no === elem.no) === index);
-    // Create an empty array of array based on amount of dogs
+    // Declare arrays for dog list, markers, and polyline
     var latlngs = [];
     var distMarkerList = [];
     var markerColors = [];
+
+    //Push new marker from array
+    function pushMarker(data){
+        console.log('dataaa',data)
+        var feed = {no: data[0], lat: data[1], lng: data[2], gas: data[3], Status: data[4]}
+        // MarkerList.push(feed)
+        setMarkers(old => [...old, feed])
+        console.log('markerss',markers)
+    }
+
+    // Booked array space for markers, and polyline
+    var dogList = MarkerList.filter((elem, index) =>
+        MarkerList.findIndex(obj => obj.no === elem.no) === index);
     for (var i = 0; i < dogList.length; i++) {
         distMarkerList.push([])
         latlngs.push([])
         markerColors.push(getColor(i))
     }
 
-    // Separate every dogs data to new array fom MarkerList
+    // Separate every dogs data to new array from MarkerList
     for (var i = 0; i < MarkerList.length; i++) {
         for (var j = 0; j < dogList.length; j++) {
             if (MarkerList[i].no === dogList[j].no) {
@@ -86,11 +80,7 @@ export default function LeafletMap() {
         }
     }
 
-    // Reverse distMarkerList
-    // for(var i = 0;i<dogList.length;i++){
-    //     distMarkerList[i].reverse()
-    // }
-
+    // Separate every dogs data to new array fom MarkerList
     for (let i = 0; i < MarkerList.length; i++) {
         for (var j = 0; j < dogList.length; j++) {
             if (MarkerList[i].no === dogList[j].no) {
@@ -100,6 +90,8 @@ export default function LeafletMap() {
             }
         }
     }
+
+    // Icon settings
     function getColor(index) {
         var color;
         switch (index){
@@ -128,7 +120,6 @@ export default function LeafletMap() {
         return color;
 
     }
-
     const gpsMarker = divIcon({
         html: renderToStaticMarkup(
             <div style={{ position: 'relative' }}>
@@ -154,7 +145,6 @@ export default function LeafletMap() {
             </div>
         ),
     })
-
     function getMarker(index) {
         const dogMarker = divIcon({
             html: renderToStaticMarkup(
