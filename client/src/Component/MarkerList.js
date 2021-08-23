@@ -713,12 +713,5 @@ export const MarkerList = [
   gas: 0.1,
   Status: 'T',
 }, 
-{
-  no : 5,
-  lat: -7.73,
-  lng: 110.398,
-  gas: 0.5,
-  Status: 'P',
-},
 
 ];
