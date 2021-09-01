@@ -32,8 +32,8 @@ function onConnection(socket) {
 // Declare arrays for dog list, markers, and polyline
 var stream
 var markers = []
-var latlngs = [];
-var distMarkerList = [];
+// var latlngs = [];
+// var distMarkerList = [];
 var dogList = [];
 
 // Icon settings
@@ -65,6 +65,28 @@ var dogList = [];
 //     return color;
 
 // }
+// function updateDogList(stream, dogList){
+//     console.log('apa itu parameter dogList', dogList)
+//     console.log('apa doglist array kosong?', (dogList == []))
+//     if(dogList === []){
+//         dogList.push(markers[0])
+//         console.log('First dogList', dogList)
+//     }
+//     for(i=0;i<dogList.length;i++){
+//         if (stream.no === dogList[i].no){
+//             dogList[i] = stream
+//             console.log('stream.no', stream.no)
+//             console.log('dogList.no', dogList[i].no)
+//             console.log('Update dogList', dogList)
+//             return dogList
+//         }
+//     }
+//     console.log('stream.no', stream.no)
+//     console.log('dogList.no', dogList[i].no)
+//     dogList.push([stream])
+//     console.log('pushed new dog', dogList)
+//     return dogList
+// }
 
 app.get('/data', (req, res) => {
     port.setMaxListeners(9000)
@@ -76,59 +98,22 @@ app.get('/data', (req, res) => {
         stream = stream.split(",")
         console.log(data);
         stream = {
-            "no": parseInt(stream[0]),
-            "lat": parseFloat(stream[1]),
-            "lng": parseFloat(stream[2]),
-            "gas": parseInt(stream[3]),
-            "Status": (stream[4]),
+            "no": parseInt(stream[1]),
+            "lat": parseFloat(stream[2]),
+            "lng": parseFloat(stream[3]),
+            "gas": parseInt(stream[4]),
+            "Status": (stream[5]),
         }
         markers.push(stream)
-        console.log(stream);
-
-        // If the dog's number ever been recorded, 
-        // push the data to that that index, otherwise to new array
-        // for(i=0;i<=dogList.length;i++){
-        //     if (stream.no === dogList[i].no){
-        //         dogList[i] = stream
-        //     } else{
-        //         dogList[dogList.length].push(stream)
-        //     }
-        // }
-
-        // dogList[];
-        // Get the dog list with last position
         dogList = markers.filter((elem, index) =>
             markers.findIndex(obj => obj.no === elem.no) === index);
-        // console.log('dogNjing', dogList)
-        // Booked array space for markers, and polyline
-        for (var i = 0; i < dogList.length; i++) {
-            distMarkerList.push([])
-            latlngs.push([])
-            // markerColors.push(getColor(i))
-        }
-
-        // Get every dogs data to new array
-        for (var i = 0; i < markers.length; i++) {
-            for (var j = 0; j < dogList.length; j++) {
-                if (markers[i].no === dogList[j].no) {
-                    distMarkerList[j].push(markers[i])
-                    latlngs[j].push(
-                        [markers[i].lat, markers[i].lng]
-                    );
-                }
-            }
-        }
-
         
-        // console.log('dogList', dogList)
-        // console.log('distMarker', distMarkerList)
-
-        // Send dogList, latlngs, and distMarkerList to frontend
-        io.emit('serialdata', { dogs: dogList, position: latlngs, markers: distMarkerList })
+        var prevStream;
+        if(prevStream !== stream){
+            console.log('data added:', stream)
+            io.emit('serialdata', { dogList: dogList, newData: stream})
+            prevStream = stream;
+        }
     })
     res.json(stream)
 })
-// file.end();
-// app.get("/", (req, res) => {
-//     res.sendFile(path.join(__dirname, "client/public", "index.html"));
-//    });

@@ -21,19 +21,15 @@ export default function LeafletMap() {
     const [mapStart, setMapStart] = useState({
         lat: -7.7956,
         lng: 110.3695,
-        zoom: 13,
+        zoom: 6,
         maxZoom: 19,
     });
     // const [markers, setMarkers] = useState(MarkerList)
-    const [distMarkerList, setDistMarkerList] = useState([[{ no: 1, lat: 7, lng: 111, gas: 2, Status: 'T' },],[{ no: 3, lat: 6, lng: 109, gas: 1, Status: 'T' },]])
-    const [latlngs, setLatLngs] = useState([0, 0],[0,0])
-    const [dogList, setDogList] = useState([
-        { no: 5, lat: 7, lng: 109, gas: 5, Status: 'T' },]
-    )
+    const [distMarkerList, setDistMarkerList] = useState([])
+    const [latlngs, setLatLngs] = useState([])
+    const [dogList, setDogList] = useState([])
     var markerColors = [];
-    const socket = io("http://localhost:5000");
 
-    //Initialize leaflet map
     let maps = L.DomUtil.get('map-id')
     useEffect(() => {
         if (maps == null) {
@@ -49,77 +45,39 @@ export default function LeafletMap() {
         }
     }, []);
 
-    // Read socket.io on localhost
+    const socket = io("http://localhost:5000");
     socket.on('serialdata', (data) => {
-        updateDog(data.dogs);
-        updateMarker(data.markers); 
-        updatePosition(data.position);
+        updateMarker(data.newData, data.newData.no - 1); 
+        updateDog(data.dogList)
     })
 
     function updateDog(dog){
-        // console.log('doglist', dogMarker)
-        // var feed = {no: data[0], lat: data[1], lng: data[2], gas: data[3], Status: data[4]}
-        // MarkerList.push(feed)
-        setDogList(old => [dog])
-        // console.log('markerss',markers)
-    }
-    function updateMarker(marker){
-        // console.log('marker',marker)
-        // var feed = {no: data[0], lat: data[1], lng: data[2], gas: data[3], Status: data[4]}
-        // MarkerList.push(feed)
-        setDistMarkerList(marker)
-        // console.log('markerss',markers)
-    }
-    function updatePosition(position){
-        // console.log('latlngs', position)
-        // var feed = {no: data[0], lat: data[1], lng: data[2], gas: data[3], Status: data[4]}
-        // MarkerList.push(feed)
-        setLatLngs(position)
-        // console.log('markerss',markers)
+        setDogList(dog)
     }
 
-    // // Declare arrays for dog list, markers, and polyline
-    // var latlngs = [];
-    // var distMarkerList = [];
-
-    // //Push new marker from array
-    // function pushMarker(data){
-    //     console.log('dataaa',data)
-    //     var feed = {no: data[0], lat: data[1], lng: data[2], gas: data[3], Status: data[4]}
-    //     // MarkerList.push(feed)
-    //     setMarkers(old => [...old, feed])
-    //     console.log('markerss',markers)
-    // }
-
-    // // Booked array space for markers, and polyline
-    // var dogList = MarkerList.filter((elem, index) =>
-    //     MarkerList.findIndex(obj => obj.no === elem.no) === index);
-    // for (var i = 0; i < dogList.length; i++) {
-    //     distMarkerList.push([])
-    //     latlngs.push([])
-    //     markerColors.push(getColor(i))
-    // }
-
-    // // Separate every dogs data to new array from MarkerList
-    // for (var i = 0; i < MarkerList.length; i++) {
-    //     for (var j = 0; j < dogList.length; j++) {
-    //         if (MarkerList[i].no === dogList[j].no) {
-    //             distMarkerList[j].push(MarkerList[i])
-    //         }
-    //     }
-    // }
-
-    // // Separate every dogs data to new array fom MarkerList
-    // for (let i = 0; i < MarkerList.length; i++) {
-    //     for (var j = 0; j < dogList.length; j++) {
-    //         if (MarkerList[i].no === dogList[j].no) {
-    //             latlngs[j].push(
-    //                 [MarkerList[i].lat, MarkerList[i].lng]
-    //             );
-    //         }
-    //     }
-    // }
-
+    function updateMarker(marker, index){
+        var found = false;
+        for(var i = 0; i < dogList.length; i++) {
+            if (dogList[i].no === marker.no) {
+                found = true;
+                break;
+            }
+        }
+        if(found){
+            // console.log('found is true')
+            distMarkerList[index].push(marker)
+            latlngs[index].push([marker.lat,marker.lng])
+            setDistMarkerList(old => [...old.slice(0,index), ...old.splice(index), ...old.slice(index+1)])
+            setLatLngs(old => [...old.slice(0,index), ...old.splice(index), ...old.slice(index+1)])
+        } else{
+            // console.log('found is false')
+            setDistMarkerList(old => [...old, [marker]])
+            setLatLngs(old => [...old, [[marker.lat,marker.lng]]])
+        }
+        console.log('distMarker after', distMarkerList)
+        console.log('latlngs after', latlngs)
+    }
+    
     // Icon settings
     function getColor(index) {
         var color;
@@ -148,11 +106,6 @@ export default function LeafletMap() {
         }
         return color;
     }
-
-    // Assign marker colors
-    // for (var i = 0; i < dogList.length; i++) {
-    //     markerColors.push(getColor(i))
-    // }
 
     const gpsMarker = divIcon({
         html: renderToStaticMarkup(
@@ -194,7 +147,7 @@ export default function LeafletMap() {
                         icon={faPaw}
                         style={{
                             fontSize: 'calc(0.5rem + 2vmin)',
-                            color: getColor(index),
+                            color: 'black',
                             position: 'absolute',
                             top: '70%',
                             left: '5%'
@@ -221,7 +174,7 @@ export default function LeafletMap() {
                         icon={faMapMarkerAlt}
                         style={{
                             fontSize: 'calc(0.5rem + 3vmin)',
-                            color: getColor(index),
+                            color: 'black',
                             position: 'absolute',
                             top: '70%',
                             left: '5%',
@@ -284,12 +237,6 @@ export default function LeafletMap() {
         ),
     });
 
-    // console.log('dogList', dogList)
-    // console.log('distMarkerList', distMarkerList)
-    // console.log('MarkerList', MarkerList)
-    // console.log('Latlngs 0', latlngs[0])
-    // console.log('Latlngs 1', latlngs[1])
-
 
     return (
         <Container>
@@ -315,11 +262,11 @@ export default function LeafletMap() {
                                         icon={faPaw}
                                         style={{
                                             fontSize: 'calc(0.5rem + 4vmin)',
-                                            color: getColor(index),
+                                            color: 'black',
                                         }} />
                                 </div>
                                 <p>
-                                    <strong>Anjing no: {dog.no}</strong>, <small><span>data ke-{distMarkerList[index].length}</span></small>
+                                    <strong>Anjing no: {dog.no}</strong>, <small><span>data ke {dog.length}</span></small>
                                     <div>
                                         <p>lat: {dog.lat}, long: {dog.lng}</p>
                                     </div>
