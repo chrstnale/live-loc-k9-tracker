@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import LeafletMap from './Component/LeafletMap';
+import LeafletMap from './pages/LeafletMap';
 
 class App extends Component {
 state = {

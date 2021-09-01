@@ -1,7 +1,7 @@
 import { Map, Marker, Popup, TileLayer, Polyline } from 'react-leaflet';
 import React, { useState, useEffect } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import L, { divIcon } from "leaflet";
+import L, { divIcon, latLng } from "leaflet";
 import styled from 'styled-components';
 import localforage from 'localforage';
 import 'leaflet-offline';
@@ -11,8 +11,8 @@ import randomColor from "randomcolor";
 import io from 'socket.io-client';
 
 import K9Logo from "../assets/K9-logo.webp";
-import { MarkerList } from "./MarkerList";
-import useGeoLocation from './useGeoLocation';
+import { MarkerList } from "../Component/MarkerList";
+import useGeoLocation from '../Component/useGeoLocation';
 
 export default function LeafletMap() {
 
@@ -25,10 +25,14 @@ export default function LeafletMap() {
         maxZoom: 19,
     });
     // const [markers, setMarkers] = useState(MarkerList)
-    const [distMarkerList, setDistMarkerList] = useState([])
-    const [latlngs, setLatLngs] = useState([])
-    const [dogList, setDogList] = useState([])
-    var markerColors = [];
+    const [markerList, setMarkerList] = useState([])
+    // const [latlngs, setLatLngs] = useState([[8,110]])
+    // console.log(markerList)
+    // console.log(latlngs)
+    const [lat, setLat] = useState(-7.8754)
+    const [lng, setLng] = useState(110.4262)
+    console.log('lat:', lat)
+    console.log('lng:', lng)
 
     let maps = L.DomUtil.get('map-id')
     useEffect(() => {
@@ -47,65 +51,10 @@ export default function LeafletMap() {
 
     const socket = io("http://localhost:5000");
     socket.on('serialdata', (data) => {
-        updateMarker(data.newData, data.newData.no - 1); 
-        updateDog(data.dogList)
+        // updateMarker(data.lat, data.lng); 
+        setLat(data.lat);
+        setLng(data.lng);
     })
-
-    function updateDog(dog){
-        setDogList(dog)
-    }
-
-    function updateMarker(marker, index){
-        var found = false;
-        for(var i = 0; i < dogList.length; i++) {
-            if (dogList[i].no === marker.no) {
-                found = true;
-                break;
-            }
-        }
-        if(found){
-            // console.log('found is true')
-            distMarkerList[index].push(marker)
-            latlngs[index].push([marker.lat,marker.lng])
-            setDistMarkerList(old => [...old.slice(0,index), ...old.splice(index), ...old.slice(index+1)])
-            setLatLngs(old => [...old.slice(0,index), ...old.splice(index), ...old.slice(index+1)])
-        } else{
-            // console.log('found is false')
-            setDistMarkerList(old => [...old, [marker]])
-            setLatLngs(old => [...old, [[marker.lat,marker.lng]]])
-        }
-        console.log('distMarker after', distMarkerList)
-        console.log('latlngs after', latlngs)
-    }
-    
-    // Icon settings
-    function getColor(index) {
-        var color;
-        switch (index){
-            case 0:
-                color = '#86efa0'; 
-                break;
-            case 1:
-                color = '#e0b05e'; 
-                break;
-            case 2:
-                color = '#fc8082'; 
-                break;
-            case 3:
-                color = '#cc6ae2'; 
-                break;
-            case 4:
-                color = '#58d3a2';          
-                break;
-            case 5:
-                color = '#4834a3'; 
-                break;
-            default:
-                color = randomColor();
-                break;
-        }
-        return color;
-    }
 
     const gpsMarker = divIcon({
         html: renderToStaticMarkup(
@@ -147,7 +96,7 @@ export default function LeafletMap() {
                         icon={faPaw}
                         style={{
                             fontSize: 'calc(0.5rem + 2vmin)',
-                            color: 'black',
+                            color: 'blue',
                             position: 'absolute',
                             top: '70%',
                             left: '5%'
@@ -174,7 +123,7 @@ export default function LeafletMap() {
                         icon={faMapMarkerAlt}
                         style={{
                             fontSize: 'calc(0.5rem + 3vmin)',
-                            color: 'black',
+                            color: 'red',
                             position: 'absolute',
                             top: '70%',
                             left: '5%',
@@ -186,10 +135,9 @@ export default function LeafletMap() {
         return pinMarker;
     }
     const trackMarker = divIcon({
-        // html: renderToStaticMarkup(<FontAwesomeIcon 
-        //   icon={faCircle}
-        // style={{fontSize: 'calc(0.5rem + 0.1vmin)', color: 'grey',}}/>),
+
     });
+
     const cautionGasMarker = divIcon({
         html: renderToStaticMarkup(
             <div style={{ position: 'relative' }}>
@@ -254,27 +202,7 @@ export default function LeafletMap() {
                 <span><FontAwesomeIcon icon={faCloud} /> Gas</span>
                 </div>
                 <div className='dog-list'>
-                    {dogList.map((dog, index) => {
-                        return (
-                            <div className='dog'>
-                                <div style={{padding: '2vmin'}}>
-                                    <FontAwesomeIcon
-                                        icon={faPaw}
-                                        style={{
-                                            fontSize: 'calc(0.5rem + 4vmin)',
-                                            color: 'black',
-                                        }} />
-                                </div>
-                                <p>
-                                    <strong>Anjing no: {dog.no}</strong>, <small><span>data ke {dog.length}</span></small>
-                                    <div>
-                                        <p>lat: {dog.lat}, long: {dog.lng}</p>
-                                    </div>
-                                </p>
 
-                            </div>
-                        )
-                    })}
                 </div>
             </div>
             <div id="map-id">
@@ -297,50 +225,15 @@ export default function LeafletMap() {
                             <p>Your location is here</p>
                         </Popup>
                     </Marker>
-                    {
-                        distMarkerList.map((dog, markerIndex) => {
-                            return (
-                                dog.map((marker, index) => {
-                                    let post = [marker.lat, marker.lng];
-                                    return (
-                                        <Marker key={index} position={post}
-                                            icon={
-                                                marker.Status === 'P' ? getPin(markerIndex) :
-                                                    index === (dog.length - 1) ? getMarker(markerIndex) :
-                                                        marker.gas > 0.7 ? warningGasMarker :
-                                                            marker.gas > 0.4 ? cautionGasMarker :
-                                                                trackMarker}>
-                                            <Popup
-                                                tipSize={5}
-                                                anchor="bottom-right"
-                                                longitude={marker.lng}
-                                                latitude={marker.lat}
-                                            >
-                                                <span>
-                                                    <strong>Anjing no: {marker.no}</strong>, <small><span>data ke {index + 1}</span></small>
-                                                    <ul style={{margin: 0, paddingLeft: '3vmin'}}>
-                                                        <li>status: {((marker.Status === "T") ? 'mencari' : 'pin!')}</li>
-                                                        <li>gas: {marker.gas}</li>
-                                                        <li>latitude: {marker.lat}</li>
-                                                        <li>longitutde: {marker.lng}</li>
-                                                    </ul>
-                                                </span>
-                                            </Popup>
-                                        </Marker>
-                                    );
-                                })
-
-                            )
-
-                        })
-                    }
-                    {latlngs.map((line, index) => {
-                        return (
-                            // Warninggggg!!!, getColor can get wrong index + 1
-                            <Polyline color='black' positions={line} />
-                        )
-                    })}
-
+                        <Marker icon={getMarker()} position={[lat,lng]}>
+                            <Popup
+                                tipSize={5}
+                                anchor="bottom-right"
+                                longitude={lat}
+                                latitude={lng}
+                            >
+                            </Popup>
+                        </Marker>
                 </Map>
             </div >
         </Container >
