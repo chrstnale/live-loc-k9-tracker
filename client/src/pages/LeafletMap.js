@@ -1,12 +1,12 @@
 import { Map, Marker, Popup, TileLayer, Polyline } from 'react-leaflet';
 import React, { useState, useEffect } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import L, { divIcon, latLng } from "leaflet";
+import L, { divIcon, latLng, map, marker } from "leaflet";
 import styled from 'styled-components';
 import localforage from 'localforage';
 import 'leaflet-offline';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCloud, faMapMarker, faHouseUser, faMapMarkerAlt, faPaw } from "@fortawesome/free-solid-svg-icons";
+import { faCloud, faMapMarker, faHouseUser, faMapMarkerAlt, faPaw, faPersonBooth, faHandsHelping, faPeopleArrows, faPeopleCarry, faHandHolding, faHandHoldingHeart, faHandHoldingMedical, faHandHoldingWater, faHandSparkles, faHandshakeSlash, faHandPeace, faHandSpock, faRunning, faWalking } from "@fortawesome/free-solid-svg-icons";
 import randomColor from "randomcolor";
 import io from 'socket.io-client';
 
@@ -14,6 +14,7 @@ import K9Logo from "../assets/K9-logo.webp";
 import { MarkerList } from "../Component/MarkerList";
 import useGeoLocation from '../Component/useGeoLocation';
 import Markers from '../Component/Markers';
+var idx = 0
 
 export default function LeafletMap() {
 
@@ -27,15 +28,9 @@ export default function LeafletMap() {
     });
     const [count, setCount] = useState(0)
     const [dogList, setDogList] = useState({ no: 5, lat: 7, lng: 109, gas: 5, status: 'T' })
-    // const [markers, setMarkers] = useState(MarkerList)
-    // const [markerList, setMarkerList] = useState([])
-    // const [latlngs, setLatLngs] = useState([[8,110]])
-    // console.log(markerList)
-    // console.log(latlngs)
-    // const [lat, setLat] = useState(-7.8754)
-    // const [lng, setLng] = useState(110.4262)
-    // console.log('lat:', lat)
-    // console.log('lng:', lng)
+    const [lat, setLat] = useState(-7.799653)
+    const [lng, setLng] = useState(110.352157)
+    const [markers, setMarkers] = useState([])
 
     useEffect(() => {
         let map = L.DomUtil.get('map-id')
@@ -51,17 +46,50 @@ export default function LeafletMap() {
             offlineLayer.addTo(map);
         }
     }, []);
-    useEffect(()=>{
+    useEffect(() => {
         const socket = io("http://localhost:5000");
         socket.on('serialdata', (data) => {
-            setDogList({lat: data.lat, lng: data.lng, gas: data.gas, status: data.status})
+            setDogList({ lat: data.lat, lng: data.lng, gas: data.gas, status: data.status })
+            setLat(data.lat);
+            setLng(data.lng);
         })
     }, [])
 
-    useEffect(()=>{
+    useEffect(() => {
         setCount(count + 1)
-    }, [dogList])
+    }, [lat, lng])
 
+    function handleClick(e) {
+        setMarkers(old => [...old, [e.latlng.lat, e.latlng.lng]])
+    }
+
+    function remove(index) {
+        setMarkers([])
+    }
+
+    const rescueMarker = divIcon({
+        html: renderToStaticMarkup(
+            <div style={{ position: 'relative' }}>
+                <FontAwesomeIcon
+                    icon={faRunning}
+                    style={{
+                        fontSize: 'calc(0.5rem + 3vmin)',
+                        color: 'black',
+                        position: 'absolute'
+                    }} />
+
+                <FontAwesomeIcon
+                    icon={faRunning}
+                    style={{
+                        fontSize: 'calc(0.5rem + 2.5vmin)',
+                        color: 'green',
+                        top: '90%',
+                        left: '23%',
+                        position: 'absolute'
+                    }} />
+            </div>
+        ),
+    });
 
     function getMarker(index) {
         const dogMarker = divIcon({
@@ -122,16 +150,16 @@ export default function LeafletMap() {
                     <h1>Live-Loc K9 Tracking App</h1>
                 </div>
                 <p className='desc'>Inovasi Rompi Anjing Pelacak Guna Meningkatkan Efisiensi Proses Evakuasi Korban Bencana Alam</p>
-                <p style={{padding: '1vmin', margin: 0}}>Legenda:</p>
+                <p style={{ margin: 0 }}>Legenda:</p>
                 <div className='legend'>
-                <span><FontAwesomeIcon icon={faPaw} /> Anjing</span>
-                <span><FontAwesomeIcon icon={faHouseUser} /> Rescue Post</span>
-                <span><FontAwesomeIcon icon={faMapMarkerAlt} /> Korban</span>
-                <span><FontAwesomeIcon icon={faCloud} /> Gas</span>
+                    <span><FontAwesomeIcon icon={faPaw} /> Anjing</span>
+                    <span><FontAwesomeIcon icon={faHouseUser} /> Rescue Post</span>
+                    <span><FontAwesomeIcon icon={faMapMarkerAlt} /> Korban</span>
+                    <span><FontAwesomeIcon icon={faCloud} /> Gas</span>
                 </div>
                 <div className='dog-list'>
                     <div className='dog'>
-                        <div style={{padding: '2vmin'}}>
+                        <div style={{ padding: '2vmin' }}>
                             <FontAwesomeIcon
                                 icon={faPaw}
                                 style={{
@@ -140,7 +168,7 @@ export default function LeafletMap() {
                                 }} />
                         </div>
                         <p>
-                            <strong>Anjing no: {1}</strong>, <small><span>data ke-{count}</span></small>
+                            <strong>Anjing no: {1}</strong>, <small><span>perpindahan ke-{count}</span></small>
                             <div>
                                 <p>lat: {dogList.lat}, long: {dogList.lng}</p>
                             </div>
@@ -150,7 +178,7 @@ export default function LeafletMap() {
                 </div>
             </div>
             <div id="map-id">
-                <Map center={(location.loaded) ? [location.coordinates.lat, location.coordinates.lng] :
+                <Map onclick={handleClick} center={(location.loaded) ? [location.coordinates.lat, location.coordinates.lng] :
                     [mapStart.lat, mapStart.lng]}
                     zoom={(location.loaded) ? 15 : mapStart.zoom}
                     maxZoom={mapStart.maxZoom}
@@ -159,7 +187,7 @@ export default function LeafletMap() {
                         attribution="&copy; <a href=&quot;https://osm.org/copyright&quot;>OpenStreetMap</a> contributors"
                         url="https://{s}.tile.osm.org/{z}/{x}/{y}.png"
                     />
-                    <Marker icon={gpsMarker} position={[location.coordinates.lat, location.coordinates.lng]}>
+                    <Marker icon={gpsMarker} draggable={true} position={[location.coordinates.lat, location.coordinates.lng]}>
                         <Popup
                             tipSize={5}
                             anchor="bottom-right"
@@ -169,7 +197,24 @@ export default function LeafletMap() {
                             <p>Lokasi Anda di sini</p>
                         </Popup>
                     </Marker>
-                    <Markers/>
+
+                    {markers.map((marker, index) => {
+                        return (
+                            <Marker key={index} icon={rescueMarker} ondblclick={remove} draggable={true} position={marker}>
+                                <Popup
+                                    tipSize={5}
+                                    anchor="bottom-right"
+                                    longitude={lat}
+                                    latitude={lng}
+                                >
+                                    <label for="tim">Tim Penyelamat:</label><br/>
+                                    <input id="tim" type="text"/>
+                                </Popup>
+                            </Marker>
+                        )
+
+                    })}
+                    <Markers />
                 </Map>
             </div >
         </Container >
@@ -182,7 +227,7 @@ const Container = styled.div`
     box-sizing: border-box;
     display: flex;
     flex-direction: row;
-    overflow: hidden;
+    /* overflow: hidden; */
     margin: 0;
     padding: 0;
     .leaflet-div-icon {
@@ -201,23 +246,18 @@ const Container = styled.div`
     .leaflet-container {
         height: 100%;
         width: 100%;
-        float: right;
+        /* float: right; */
     }
 
     #map-id{
-        width: 70vw;
-        height: 100vh;
+        width: 65%;
     }
 
     .box{
-        width: 30vw;
-        height: 100%;
+        width: 35%;
         display: flex;
         flex-direction: column;
         padding: 5vmin;
-        float: left;
-        flex-wrap: wrap;
-        align-items: left;
         .title{
             display: flex;
             align-items: center;
@@ -228,15 +268,9 @@ const Container = styled.div`
             }
         }
 
-        .desc{
-            margin: 1vmin;
-        }
-
         .dog-list{
             width: 100%;
             align-items: flex-start;
-            height: 50%;
-            overflow: auto;
 
             .dog{
                 width: 100%;
@@ -266,29 +300,28 @@ const Container = styled.div`
             }
         }
         .legend{
-            font-size: 'calc(0.5rem + 1.5vmin)';
             display: 'flex';
-            padding-bottom: 2vmin;
             span{
                 white-space: nowrap;
-                padding: 1.5vmin;
+                margin-right: 2vmin;
             }
         }
                 
     }
-    @media (max-width: 1024px){
+    @media (max-width: 1000px){
         flex-direction: column;
-        padding: 5vmin;
+        overflow: hidden;
         .box{
             order:2;
             width: 100%;
-            height: 30vh;
-            
+            height: 30%;
+            /* height: 30%; */
+            overflow-y: scroll;
         }
 
-        .map-id{
+        #map-id{
             width:100%;
-            height: 70vh;;
+            height: 70%;
         }
         
     }

@@ -27,8 +27,6 @@ export default function Markers() {
         const socket = io("http://localhost:5000");
         socket.on('serialdata', (data) => {
             // updateMarker(data.lat, data.lng); 
-            console.log('lat', data.lat)
-            console.log('lng', data.lng)
             setLat(data.lat);
             setLng(data.lng);
             setStatus(data.status);
@@ -57,7 +55,7 @@ export default function Markers() {
                     latitude={lng}
                 >
                     <span>
-                        <strong>Anjing no: 1</strong>, <small><span>data ke {count}</span></small>
+                        <strong>Anjing no: 1</strong>, <small><span>langkah ke {count}</span></small>
                         <ul style={{margin: 0, paddingLeft: '3vmin'}}>
                             <li>status: {((status === "T") ? 'mencari' : 'ketemu!')}</li>
                             <li>gas: {gas}</li>
@@ -216,7 +214,7 @@ export default function Markers() {
                     latitude={lng}
                 >
                     <span>
-                        <strong>Anjing no: 1</strong>, <small><span>data ke {count}</span></small>
+                        <strong>Anjing no: 1</strong>, <small><span>perpindahan ke {count}</span></small>
                         <ul style={{margin: 0, paddingLeft: '3vmin'}}>
                             <li>status: {((status === "T") ? 'mencari' : 'pin!')}</li>
                             <li>gas: {gas}</li>

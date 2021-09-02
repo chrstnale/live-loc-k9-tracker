@@ -35,7 +35,7 @@ port.on('data', data => {
     console.log(data);
     console.log(stream)
     if(stream[1] !== undefined && stream[2] !== undefined){
-        io.emit('serialdata', { lat: stream[2], lng: stream[3], gas: stream[4], status: stream[5], no: stream[1]})
+        io.emit('serialdata', { lat: stream[2], lng: stream[3], gas: 1, status: stream[5], no: stream[1]})
     }
 })
 
