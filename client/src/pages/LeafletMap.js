@@ -25,15 +25,17 @@ export default function LeafletMap() {
         zoom: 6,
         maxZoom: 19,
     });
+    const [count, setCount] = useState(0)
+    const [dogList, setDogList] = useState({ no: 5, lat: 7, lng: 109, gas: 5, status: 'T' })
     // const [markers, setMarkers] = useState(MarkerList)
-    const [markerList, setMarkerList] = useState([])
+    // const [markerList, setMarkerList] = useState([])
     // const [latlngs, setLatLngs] = useState([[8,110]])
     // console.log(markerList)
     // console.log(latlngs)
-    const [lat, setLat] = useState(-7.8754)
-    const [lng, setLng] = useState(110.4262)
-    console.log('lat:', lat)
-    console.log('lng:', lng)
+    // const [lat, setLat] = useState(-7.8754)
+    // const [lng, setLng] = useState(110.4262)
+    // console.log('lat:', lat)
+    // console.log('lng:', lng)
 
     useEffect(() => {
         let map = L.DomUtil.get('map-id')
@@ -48,15 +50,18 @@ export default function LeafletMap() {
             });
             offlineLayer.addTo(map);
         }
-        // L.polyline([[lat,lng],[-7.864,110.4352]], {color:'red'}).addTo(map)
     }, []);
+    useEffect(()=>{
+        const socket = io("http://localhost:5000");
+        socket.on('serialdata', (data) => {
+            setDogList({lat: data.lat, lng: data.lng, gas: data.gas, status: data.status})
+        })
+    }, [])
 
-    // const socket = io("http://localhost:5000");
-    // socket.on('serialdata', (data) => {
-    //     // updateMarker(data.lat, data.lng); 
-    //     // setLat(data.lat);
-    //     // setLng(data.lng);
-    // })
+    useEffect(()=>{
+        setCount(count + 1)
+    }, [dogList])
+
 
     function getMarker(index) {
         const dogMarker = divIcon({
@@ -125,7 +130,23 @@ export default function LeafletMap() {
                 <span><FontAwesomeIcon icon={faCloud} /> Gas</span>
                 </div>
                 <div className='dog-list'>
+                    <div className='dog'>
+                        <div style={{padding: '2vmin'}}>
+                            <FontAwesomeIcon
+                                icon={faPaw}
+                                style={{
+                                    fontSize: 'calc(0.5rem + 4vmin)',
+                                    color: 'black',
+                                }} />
+                        </div>
+                        <p>
+                            <strong>Anjing no: {1}</strong>, <small><span>data ke-{count}</span></small>
+                            <div>
+                                <p>lat: {dogList.lat}, long: {dogList.lng}</p>
+                            </div>
+                        </p>
 
+                    </div>
                 </div>
             </div>
             <div id="map-id">

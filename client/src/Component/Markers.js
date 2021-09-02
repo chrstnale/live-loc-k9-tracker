@@ -15,28 +15,33 @@ import { MarkerList } from "../Component/MarkerList";
 import useGeoLocation from '../Component/useGeoLocation';
 
 export default function Markers() {
-    const [lat, setLat] = useState(-7.8744)
-    const [lng, setLng] = useState(110.4252)
+    const [lat, setLat] = useState(-7.799653)
+    const [lng, setLng] = useState(110.352157)
     const [status, setStatus] = useState("T")
     const [gas, setGas] = useState(1)
     const [markers, setMarkers] = useState([])
-
-
+    const [lines, setLines] = useState([])
 
     useEffect(()=>{
         const socket = io("http://localhost:5000");
         socket.on('serialdata', (data) => {
             // updateMarker(data.lat, data.lng); 
+            console.log('lat', data.lat)
+            console.log('lng', data.lng)
             setLat(data.lat);
             setLng(data.lng);
             setStatus(data.status);
             setGas(data.gas);
         })
-        // addMarker(lat,lng)
     }, [])
 
+    useEffect(() => {
+        addMarker(lat,lng)
+        addLines(lat, lng)
+    },[lat,lng])
+
     function addMarker(lat,lng){ 
-        // if(gas > 4 || status === 'P'){
+        if(gas > 4 || status === 'P'){
             const marker = <Marker position={[lat,lng]}
                 icon = {
                 status === 'P' ? getPin() :
@@ -51,8 +56,12 @@ export default function Markers() {
                 >
                 </Popup>
             </Marker>
-            setMarkers(marker)
-        // }
+            setMarkers(old => [...old, marker])
+        }
+    }
+
+    function addLines(lat,lng){
+        setLines(old=> [...old, [lat,lng]])
     }
 
     function getMarker(index) {
@@ -188,16 +197,16 @@ export default function Markers() {
 
     return(
         <div id='marker-list'>
-                    <Marker icon={getMarker()} position={[lat,lng]}>
-                        <Popup
-                            tipSize={5}
-                            anchor="bottom-right"
-                            longitude={lat}
-                            latitude={lng}
-                        >
-                        </Popup>
-                    </Marker>
-                    {/* <Polyline positions={[[lat,lng],[-7.864,110.4352]]}/> */}
+            <Marker icon={getMarker()} position={[lat,lng]}>
+                <Popup
+                    tipSize={5}
+                    anchor="bottom-right"
+                    longitude={lat}
+                    latitude={lng}
+                >
+                </Popup>
+            </Marker>
+            <Polyline positions={lines}/>
                     
                 {markers}
         </div>

@@ -448,7 +448,7 @@ void setup() {
 void loop() {
 //  String data = "mbuh, 1," + String(rand()%1+8) + "," + String(rand()%1+110) + "," + String(rand()%10+1) + "," + "T";
   for(int i=0;i<243;i++){
-      Serial.println("mbuh," + String(myArr[i][0], 6) + "," + String(myArr[i][1], 6) + "," + String(rand()%10+1) + "," + "T");
+      Serial.println("m," + String(myArr[i][0], 6) + "," + String(myArr[i][1], 6) + "," + String(rand()%10+1) + "," + String(rand()%1+1) + "," + "T");
       delay(200);
   }
 }

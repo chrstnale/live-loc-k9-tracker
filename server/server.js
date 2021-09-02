@@ -34,7 +34,9 @@ port.on('data', data => {
     stream = stream.split(",")
     console.log(data);
     console.log(stream)
-    io.emit('serialdata', { status: stream[4], gas: stream[3], lat: stream[1], lng: stream[2]})
+    if(stream[1] !== undefined && stream[2] !== undefined){
+        io.emit('serialdata', { lat: stream[1], lng: stream[2], gas: stream[3], status: stream[5], no: stream[4]})
+    }
 })
 
 // app.use((req, res, next) => {
