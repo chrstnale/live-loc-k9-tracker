@@ -13,6 +13,7 @@ import io from 'socket.io-client';
 import K9Logo from "../assets/K9-logo.webp";
 import { MarkerList } from "../Component/MarkerList";
 import useGeoLocation from '../Component/useGeoLocation';
+import Markers from '../Component/Markers';
 
 export default function LeafletMap() {
 
@@ -34,10 +35,10 @@ export default function LeafletMap() {
     console.log('lat:', lat)
     console.log('lng:', lng)
 
-    let maps = L.DomUtil.get('map-id')
     useEffect(() => {
-        if (maps == null) {
-            maps = L.map('map-id');
+        let map = L.DomUtil.get('map-id')
+        if (map == null) {
+            map = L.map('map-id');
             const offlineLayer = L.tileLayer.offline('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', localforage, {
                 attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
                 subdomains: 'abc',
@@ -45,42 +46,18 @@ export default function LeafletMap() {
                 maxZoom: 18,
                 crossOrigin: true
             });
-            offlineLayer.addTo(maps);
+            offlineLayer.addTo(map);
         }
+        // L.polyline([[lat,lng],[-7.864,110.4352]], {color:'red'}).addTo(map)
     }, []);
 
-    const socket = io("http://localhost:5000");
-    socket.on('serialdata', (data) => {
-        // updateMarker(data.lat, data.lng); 
-        setLat(data.lat);
-        setLng(data.lng);
-    })
+    // const socket = io("http://localhost:5000");
+    // socket.on('serialdata', (data) => {
+    //     // updateMarker(data.lat, data.lng); 
+    //     // setLat(data.lat);
+    //     // setLng(data.lng);
+    // })
 
-    const gpsMarker = divIcon({
-        html: renderToStaticMarkup(
-            <div style={{ position: 'relative' }}>
-                <FontAwesomeIcon
-                    icon={faHouseUser}
-                    style={{
-                        fontSize: 'calc(0.5rem + 4.5vmin)',
-                        color: 'white',
-                        zIndex: 2999,
-                        position: 'absolute',
-                    }} />
-                <FontAwesomeIcon
-                    icon={faHouseUser}
-                    style={{
-                        fontSize: 'calc(0.5rem + 4vmin)',
-                        color: 'black',
-                        position: 'absolute',
-                        top: '70%',
-                        left: '5%',
-                        zIndex: 3000,
-
-                    }} />
-            </div>
-        ),
-    })
     function getMarker(index) {
         const dogMarker = divIcon({
             html: renderToStaticMarkup(
@@ -107,85 +84,31 @@ export default function LeafletMap() {
         });
         return dogMarker;
     }
-    function getPin(index) {
-        const pinMarker = divIcon({
-            html: renderToStaticMarkup(
-                <div style={{ position: 'relative' }}>
-                    <FontAwesomeIcon
-                        icon={faMapMarker}
-                        style={{
-                            fontSize: 'calc(0.5rem + 3.5vmin)',
-                            color: 'black',
-                            zIndex: 1999,
-                            position: 'absolute',
-                        }} />
-                    <FontAwesomeIcon
-                        icon={faMapMarkerAlt}
-                        style={{
-                            fontSize: 'calc(0.5rem + 3vmin)',
-                            color: 'red',
-                            position: 'absolute',
-                            top: '70%',
-                            left: '5%',
-                            zIndex: 2000,
-
-                        }} />
-                </div>),
-        });
-        return pinMarker;
-    }
-    const trackMarker = divIcon({
-
-    });
-
-    const cautionGasMarker = divIcon({
+    const gpsMarker = divIcon({
         html: renderToStaticMarkup(
             <div style={{ position: 'relative' }}>
                 <FontAwesomeIcon
-                    icon={faCloud}
+                    icon={faHouseUser}
                     style={{
-                        fontSize: 'calc(0.5rem + 1.5vmin)',
-                        color: 'black',
-                        position: 'absolute'
+                        fontSize: 'calc(0.5rem + 4.5vmin)',
+                        color: 'white',
+                        zIndex: 2999,
+                        position: 'absolute',
                     }} />
-
                 <FontAwesomeIcon
-                    icon={faCloud}
+                    icon={faHouseUser}
                     style={{
-                        fontSize: 'calc(0.5rem + 1vmin)',
-                        color: 'yellow',
+                        fontSize: 'calc(0.5rem + 4vmin)',
+                        color: 'black',
+                        position: 'absolute',
                         top: '70%',
-                        left: '10%',
-                        position: 'absolute'
+                        left: '5%',
+                        zIndex: 3000,
+
                     }} />
             </div>
         ),
-    });
-    const warningGasMarker = divIcon({
-        html: renderToStaticMarkup(
-            <div style={{ position: 'relative' }}>
-                <FontAwesomeIcon
-                    icon={faCloud}
-                    style={{
-                        fontSize: 'calc(0.5rem + 1.5vmin)',
-                        color: 'black',
-                        position: 'absolute'
-                    }} />
-
-                <FontAwesomeIcon
-                    icon={faCloud}
-                    style={{
-                        fontSize: 'calc(0.5rem + 1vmin)',
-                        color: 'red',
-                        top: '70%',
-                        left: '10%',
-                        position: 'absolute'
-                    }} />
-            </div>
-        ),
-    });
-
-
+    })
     return (
         <Container>
             <div className='box'>
@@ -225,15 +148,7 @@ export default function LeafletMap() {
                             <p>Your location is here</p>
                         </Popup>
                     </Marker>
-                        <Marker icon={getMarker()} position={[lat,lng]}>
-                            <Popup
-                                tipSize={5}
-                                anchor="bottom-right"
-                                longitude={lat}
-                                latitude={lng}
-                            >
-                            </Popup>
-                        </Marker>
+                    <Markers/>
                 </Map>
             </div >
         </Container >
