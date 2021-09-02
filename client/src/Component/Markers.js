@@ -21,6 +21,7 @@ export default function Markers() {
     const [gas, setGas] = useState(1)
     const [markers, setMarkers] = useState([])
     const [lines, setLines] = useState([])
+    const [count, setCount] = useState(0)
 
     useEffect(()=>{
         const socket = io("http://localhost:5000");
@@ -38,6 +39,7 @@ export default function Markers() {
     useEffect(() => {
         addMarker(lat,lng)
         addLines(lat, lng)
+        setCount(count + 1)
     },[lat,lng])
 
     function addMarker(lat,lng){ 
@@ -54,6 +56,15 @@ export default function Markers() {
                     longitude={lat}
                     latitude={lng}
                 >
+                    <span>
+                        <strong>Anjing no: 1</strong>, <small><span>data ke {count}</span></small>
+                        <ul style={{margin: 0, paddingLeft: '3vmin'}}>
+                            <li>status: {((status === "T") ? 'mencari' : 'ketemu!')}</li>
+                            <li>gas: {gas}</li>
+                            <li>latitude: {lat}</li>
+                            <li>longitutde: {lng}</li>
+                        </ul>
+                    </span>
                 </Popup>
             </Marker>
             setMarkers(old => [...old, marker])
@@ -204,6 +215,15 @@ export default function Markers() {
                     longitude={lat}
                     latitude={lng}
                 >
+                    <span>
+                        <strong>Anjing no: 1</strong>, <small><span>data ke {count}</span></small>
+                        <ul style={{margin: 0, paddingLeft: '3vmin'}}>
+                            <li>status: {((status === "T") ? 'mencari' : 'pin!')}</li>
+                            <li>gas: {gas}</li>
+                            <li>latitude: {lat}</li>
+                            <li>longitutde: {lng}</li>
+                        </ul>
+                    </span>
                 </Popup>
             </Marker>
             <Polyline positions={lines}/>

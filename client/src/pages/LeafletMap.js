@@ -166,7 +166,7 @@ export default function LeafletMap() {
                             longitude={location.coordinates.lng}
                             latitude={location.coordinates.lat}
                         >
-                            <p>Your location is here</p>
+                            <p>Lokasi Anda di sini</p>
                         </Popup>
                     </Marker>
                     <Markers/>
