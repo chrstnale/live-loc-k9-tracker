@@ -156,6 +156,7 @@ export default function LeafletMap() {
                     <span><FontAwesomeIcon icon={faHouseUser} /> Rescue Post</span>
                     <span><FontAwesomeIcon icon={faMapMarkerAlt} /> Korban</span>
                     <span><FontAwesomeIcon icon={faCloud} /> Gas</span>
+                    <span><FontAwesomeIcon icon={faRunning} /> Tim Penyelamat</span>
                 </div>
                 <div className='dog-list'>
                     <div className='dog'>
