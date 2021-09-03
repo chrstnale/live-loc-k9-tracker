@@ -31,6 +31,7 @@ export default function LeafletMap() {
     const [lat, setLat] = useState(-7.799653)
     const [lng, setLng] = useState(110.352157)
     const [markers, setMarkers] = useState([])
+    // const [isSending, setIsSending] = useState(false)
 
     useEffect(() => {
         let map = L.DomUtil.get('map-id')
@@ -66,6 +67,19 @@ export default function LeafletMap() {
     function remove(index) {
         setMarkers([])
     }
+
+
+    // function askData(){
+    //     setIsSending(!isSending)
+    //     let socket = io.connect("http://localhost:5000/", {
+    //         reconnection: false
+    //     });
+    
+    //     socket.on('connect', function() {
+    //         console.log('Connected to server');
+    //         socket.emit('askdata', {send: isSending})
+    //     });
+    // }
 
     const rescueMarker = divIcon({
         html: renderToStaticMarkup(
@@ -153,7 +167,7 @@ export default function LeafletMap() {
                 <p style={{ margin: 0 }}>Legenda:</p>
                 <div className='legend'>
                     <span><FontAwesomeIcon icon={faPaw} /> Anjing</span>
-                    <span><FontAwesomeIcon icon={faHouseUser} /> Rescue Post</span>
+                    <span><FontAwesomeIcon icon={faHouseUser} /> Posko</span>
                     <span><FontAwesomeIcon icon={faMapMarkerAlt} /> Korban</span>
                     <span><FontAwesomeIcon icon={faCloud} /> Gas</span>
                     <span><FontAwesomeIcon icon={faRunning} /> Tim Penyelamat</span>
@@ -177,6 +191,7 @@ export default function LeafletMap() {
 
                     </div>
                 </div>
+                {/* <button onClick={askData}>Ambil data</button> */}
             </div>
             <div id="map-id">
                 <Map onclick={handleClick} center={(location.loaded) ? [location.coordinates.lat, location.coordinates.lng] :
@@ -188,7 +203,7 @@ export default function LeafletMap() {
                         attribution="&copy; <a href=&quot;https://osm.org/copyright&quot;>OpenStreetMap</a> contributors"
                         url="https://{s}.tile.osm.org/{z}/{x}/{y}.png"
                     />
-                    <Marker icon={gpsMarker} draggable={true} position={[location.coordinates.lat, location.coordinates.lng]}>
+                    {/* <Marker icon={gpsMarker} draggable={true} position={[location.coordinates.lat, location.coordinates.lng]}>
                         <Popup
                             tipSize={5}
                             anchor="bottom-right"
@@ -197,7 +212,7 @@ export default function LeafletMap() {
                         >
                             <p>Lokasi Anda di sini</p>
                         </Popup>
-                    </Marker>
+                    </Marker> */}
 
                     {markers.map((marker, index) => {
                         return (
