@@ -26,6 +26,7 @@ io.on('connection', socket=> {
 
 // Declare arrays for dog list, markers, and polyline
 var stream
+var status
 port.setMaxListeners(9000)
 port.on('data', data => {
     data = JSON.stringify(data)
@@ -33,10 +34,20 @@ port.on('data', data => {
     stream = String.fromCharCode.apply(String, data.data).replace(`\r\n`, '');
     stream = stream.split(",")
     console.log(data);
-    console.log(stream)
-    if(stream[1] !== undefined && stream[2] !== undefined){
-        io.emit('serialdata', { lat: stream[2], lng: stream[3], gas: 1, status: stream[5], no: stream[1]})
+    console.log(stream.length)
+    if(stream[5] == 78){
+        console.log('mencari')
+        status = 'T'
+    } else{
+        console.log('ketemu!')
+        status = 'P'
     }
+    if(stream.length===6 && stream[2] !== 0 && stream[3] !== 0){
+        console.log(stream)
+        console.log(status)
+        io.emit('serialdata', { lat: stream[2], lng: stream[3], gas: 1, status: status})
+    }
+       
 })
 
 // app.use((req, res, next) => {

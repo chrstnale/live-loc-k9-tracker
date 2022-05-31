@@ -203,7 +203,7 @@ export default function LeafletMap() {
                         attribution="&copy; <a href=&quot;https://osm.org/copyright&quot;>OpenStreetMap</a> contributors"
                         url="https://{s}.tile.osm.org/{z}/{x}/{y}.png"
                     />
-                    {/* <Marker icon={gpsMarker} draggable={true} position={[location.coordinates.lat, location.coordinates.lng]}>
+                    <Marker icon={gpsMarker} draggable={true} position={[location.coordinates.lat, location.coordinates.lng]}>
                         <Popup
                             tipSize={5}
                             anchor="bottom-right"
@@ -212,7 +212,7 @@ export default function LeafletMap() {
                         >
                             <p>Lokasi Anda di sini</p>
                         </Popup>
-                    </Marker> */}
+                    </Marker>
 
                     {markers.map((marker, index) => {
                         return (
@@ -223,6 +223,7 @@ export default function LeafletMap() {
                                     longitude={lat}
                                     latitude={lng}
                                 >
+                                    <span>latlng:{marker[0]},{marker[1]}</span><br/>
                                     <label for="tim">Tim Penyelamat:</label><br/>
                                     <input id="tim" type="text"/>
                                 </Popup>

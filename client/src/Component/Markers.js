@@ -15,8 +15,8 @@ import { MarkerList } from "../Component/MarkerList";
 import useGeoLocation from '../Component/useGeoLocation';
 
 export default function Markers() {
-    const [lat, setLat] = useState(-7.799653)
-    const [lng, setLng] = useState(110.352157)
+    const [lat, setLat] = useState(-7.800369)
+    const [lng, setLng] = useState(110.404789)
     const [status, setStatus] = useState("T")
     const [gas, setGas] = useState(1)
     const [markers, setMarkers] = useState([])
@@ -26,22 +26,23 @@ export default function Markers() {
     useEffect(()=>{
         const socket = io("http://localhost:5000");
         socket.on('serialdata', (data) => {
-            // updateMarker(data.lat, data.lng); 
+            // updateMarker(data.lat, data.lng);
+            setStatus(data.status)
+            setGas(data.gas);
             setLat(data.lat);
             setLng(data.lng);
-            setStatus(data.status);
-            setGas(data.gas);
         })
     }, [])
 
     useEffect(() => {
+        console.log(status) 
         addMarker(lat,lng)
         addLines(lat, lng)
         setCount(count + 1)
-    },[lat,lng])
+    },[lat,lng, status])
 
     function addMarker(lat,lng){ 
-        if(gas > 4 || status === 'P'){
+        if(status === 'P'){
             const marker = <Marker position={[lat,lng]}
                 icon = {
                 status === 'P' ? getPin() :
